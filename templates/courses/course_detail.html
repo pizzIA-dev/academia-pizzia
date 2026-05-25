@@ -118,4 +118,104 @@ document.getElementById('enroll-link')?.addEventListener('click', function() {
   });
 });
 </script>
+
+{% if can_manage and students %}
+<!-- ═══ STUDENTS SECTION ═══ -->
+<div class="section-header fade-in" style="margin-top:2rem;">
+  <span class="section-title">👥 Estudiantes ({{ students.count }})</span>
+  {% if is_owner %}
+  <a href="{% url 'enrollment_requests' course.pk %}" class="btn btn-secondary btn-sm">
+    Ver Solicitudes{% if pending_count %} ({{ pending_count }}){% endif %}
+  </a>
+  {% endif %}
+</div>
+
+<div class="card fade-in" style="padding:0;overflow:hidden;border-radius:12px;border:1px solid rgba(255,255,255,.08);">
+  <!-- Search bar -->
+  <div style="padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);">
+    <input type="text" id="student-search" placeholder="🔍 Buscar por nombre o correo..."
+      oninput="filterStudents(this.value)"
+      style="width:100%;background:transparent;border:none;color:#fff;font-size:.9rem;outline:none;">
+  </div>
+
+  <table style="width:100%;border-collapse:collapse;" id="students-table">
+    <thead>
+      <tr style="background:rgba(255,255,255,.04);font-size:.8rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;">
+        <th style="padding:.7rem 1rem;text-align:left;">Nombre</th>
+        <th style="padding:.7rem 1rem;text-align:left;">Usuario</th>
+        <th style="padding:.7rem 1rem;text-align:left;">Correo</th>
+        {% if is_owner %}<th style="padding:.7rem 1rem;text-align:center;">Acciones</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in students %}
+      <tr class="student-row" style="border-top:1px solid rgba(255,255,255,.05);transition:.15s;"
+        onmouseover="this.style.background='rgba(255,255,255,.03)'"
+        onmouseout="this.style.background=''"
+        data-name="{{ s.get_full_name|lower }} {{ s.username|lower }}"
+        data-email="{{ s.email|lower }}">
+        <td style="padding:.8rem 1rem;">
+          <div style="display:flex;align-items:center;gap:.7rem;">
+            <div style="width:32px;height:32px;border-radius:50%;
+              background:linear-gradient(135deg,#38bdf8,#818cf8);
+              display:flex;align-items:center;justify-content:center;
+              font-size:.8rem;font-weight:700;color:#fff;flex-shrink:0;">
+              {{ s.first_name|first|upper }}{{ s.last_name|first|upper }}
+            </div>
+            <span style="color:#fff;font-weight:500;">{{ s.get_full_name|default:s.username }}</span>
+          </div>
+        </td>
+        <td style="padding:.8rem 1rem;color:rgba(255,255,255,.5);font-size:.88rem;">
+          @{{ s.username }}
+        </td>
+        <td style="padding:.8rem 1rem;">
+          <a href="mailto:{{ s.email }}"
+            style="color:#38bdf8;font-size:.88rem;text-decoration:none;">
+            {{ s.email }}
+          </a>
+        </td>
+        {% if is_owner %}
+        <td style="padding:.8rem 1rem;text-align:center;">
+          <form method="POST" action="{% url 'remove_student' course.pk s.pk %}"
+            onsubmit="return confirm('¿Eliminar a {{ s.get_full_name }} del curso?')">
+            {% csrf_token %}
+            <button type="submit"
+              style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);
+                     color:#f87171;border-radius:6px;padding:.25rem .6rem;cursor:pointer;font-size:.78rem;">
+              Eliminar
+            </button>
+          </form>
+        </td>
+        {% endif %}
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" style="padding:2rem;text-align:center;color:rgba(255,255,255,.35);font-size:.9rem;">
+          No hay estudiantes inscritos aún
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function filterStudents(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.student-row').forEach(function(row) {
+    var name = row.dataset.name || '';
+    var email = row.dataset.email || '';
+    row.style.display = (name.includes(q) || email.includes(q)) ? '' : 'none';
+  });
+}
+</script>
+{% elif can_manage %}
+<div class="section-header fade-in" style="margin-top:2rem;">
+  <span class="section-title">👥 Estudiantes (0)</span>
+</div>
+<div class="empty-state fade-in" style="padding:2rem;text-align:center;">
+  <p style="color:rgba(255,255,255,.4);">No hay estudiantes inscritos aún.</p>
+</div>
+{% endif %}
+
 {% endblock %}

@@ -65,12 +65,14 @@ def course_detail(request, pk):
     is_owner = user.is_teacher_of(course)
     can_manage = user.can_manage(course)
     pending_count = course.get_pending_requests_count() if can_manage else 0
+    students = course.students.all().order_by('first_name', 'last_name') if can_manage else None
     return render(request, 'courses/course_detail.html', {
         'course': course,
         'sessions': sessions,
         'is_owner': is_owner,
         'can_manage': can_manage,
         'pending_count': pending_count,
+        'students': students,
     })
 
 
