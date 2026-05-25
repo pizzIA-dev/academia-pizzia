@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
-{% block title %}Crear Actividad{% endblock %}
+{% block title %}{{ action|default:"Crear" }} Actividad{% endblock %}
 
 {% block content %}
 <div class="page-header fade-in">
   <div>
     <div class="breadcrumb">
       <a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a>
-      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-sep">&#8250;</span>
       <a href="{% url 'session_detail' session.pk %}">{{ session.title }}</a>
-      <span class="breadcrumb-sep">›</span>
-      <span>Nueva Actividad</span>
+      <span class="breadcrumb-sep">&#8250;</span>
+      <span>{{ action|default:"Crear" }} Actividad</span>
     </div>
-    <h1 class="page-title">Crear Actividad</h1>
+    <h1 class="page-title">{{ action|default:"Crear" }} Actividad</h1>
   </div>
 </div>
 
@@ -19,58 +19,85 @@
   <div class="card">
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
-      {% for field in form %}
-        <div class="form-group" {% if field.html_name == 'custom_grades' %}id="custom-grades-group" style="display:none;"{% endif %}>
-          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {% if field.html_name == 'instructions' %}
-            <textarea name="{{ field.html_name }}" id="{{ field.id_for_label }}" class="form-control" rows="5"
-              placeholder="Describe la actividad en detalle...">{{ field.value|default:'' }}</textarea>
-          {% elif field.html_name == 'instruction_file' %}
-            <input type="file" name="{{ field.html_name }}" id="{{ field.id_for_label }}"
-              class="form-control" accept=".ppt,.pptx,.xls,.xlsx,.doc,.docx,.pdf">
-          {% elif field.html_name == 'grade_type' %}
-            <select name="{{ field.html_name }}" id="{{ field.id_for_label }}" class="form-control" id="grade-type-sel">
-              {% for val, label in field.field.choices %}
-                <option value="{{ val }}" {% if field.value == val %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          {% elif field.html_name == 'due_date' %}
-            <input type="datetime-local" name="{{ field.html_name }}" id="{{ field.id_for_label }}"
-              class="form-control" value="{{ field.value|default:'' }}">
-          {% elif field.html_name == 'max_grade' %}
-            <input type="number" name="{{ field.html_name }}" id="{{ field.id_for_label }}"
-              class="form-control" value="{{ field.value|default:'100' }}" min="0" step="0.5">
-          {% else %}
-            <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.html_name }}"
-              id="{{ field.id_for_label }}" class="form-control"
-              value="{{ field.value|default:'' }}"
-              {% if field.field.required %}required{% endif %}>
-          {% endif %}
-          {% if field.help_text %}<p class="form-hint">{{ field.help_text }}</p>{% endif %}
-          {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+
+      <div class="form-group">
+        <label class="form-label">Titulo de la actividad *</label>
+        <input type="text" name="title" class="form-control"
+          value="{{ form.title.value|default:'' }}"
+          placeholder="Ej: Tarea 1 - Algoritmos de ordenamiento" required>
+        {% for e in form.title.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Instrucciones *</label>
+        <textarea name="instructions" class="form-control" rows="5"
+          placeholder="Describe la actividad en detalle..." required>{{ form.instructions.value|default:'' }}</textarea>
+        {% for e in form.instructions.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Archivo de instrucciones (opcional)</label>
+        {% if form.instance.instruction_file %}
+          <div class="file-item" style="margin-bottom:0.5rem;">
+            <div class="file-icon file-icon-pdf">DOC</div>
+            <div class="file-name" style="flex:1;">Archivo actual: {{ form.instance.instruction_file.name|split:"/"|last }}</div>
+            <a href="{{ form.instance.instruction_file.url }}" target="_blank" class="btn btn-secondary btn-sm">Ver</a>
+          </div>
+          <p style="font-size:0.8rem; color:var(--text-muted);">Sube un nuevo archivo para reemplazar el actual.</p>
+        {% endif %}
+        <input type="file" name="instruction_file" class="form-control"
+          accept=".ppt,.pptx,.xls,.xlsx,.doc,.docx,.pdf">
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Fecha limite *</label>
+          <input type="datetime-local" name="due_date" class="form-control"
+            value="{{ form.due_date.value|default:'' }}" required>
+          {% for e in form.due_date.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
         </div>
-      {% endfor %}
-      <div style="display:flex; gap:0.75rem; margin-top:1rem;">
-        <button type="submit" id="btn-create-activity" class="btn btn-primary btn-lg" style="flex:1;">Crear Actividad</button>
+        <div class="form-group">
+          <label class="form-label">Tipo de nota *</label>
+          <select name="grade_type" id="id_grade_type" class="form-control" onchange="toggleGradeFields(this.value)">
+            <option value="numeric" {% if form.grade_type.value == 'numeric' %}selected{% endif %}>Numerica (0-100)</option>
+            <option value="letter" {% if form.grade_type.value == 'letter' %}selected{% endif %}>Letra (A-F)</option>
+            <option value="custom" {% if form.grade_type.value == 'custom' %}selected{% endif %}>Personalizada</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="field-max-grade" class="form-group">
+        <label class="form-label">Nota maxima</label>
+        <input type="number" name="max_grade" class="form-control"
+          value="{{ form.max_grade.value|default:'100' }}" min="0" step="0.5">
+      </div>
+
+      <div id="field-custom-grades" class="form-group" style="display:none;">
+        <label class="form-label">Opciones de nota (separadas por coma)</label>
+        <input type="text" name="custom_grades" class="form-control"
+          value="{{ form.custom_grades.value|default:'' }}"
+          placeholder="Ej: Excelente, Bueno, Regular, Deficiente">
+        <p class="form-hint">Ingresa los valores posibles separados por coma.</p>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
+        <button type="submit" id="btn-save-activity" class="btn btn-primary btn-lg" style="flex:1;">
+          &#10003; Guardar Actividad
+        </button>
         <a href="{% url 'session_detail' session.pk %}" class="btn btn-secondary btn-lg">Cancelar</a>
       </div>
     </form>
   </div>
 </div>
+{% endblock %}
+
 {% block extra_js %}
 <script>
-const gradeType = document.querySelector('select[name=grade_type]');
-const customGroup = document.getElementById('custom-grades-group');
-const maxGradeGroup = document.querySelector('#id_max_grade')?.closest('.form-group');
-
-function updateGradeFields() {
-  if (!gradeType) return;
-  const val = gradeType.value;
-  if (customGroup) customGroup.style.display = val === 'custom' ? 'block' : 'none';
-  if (maxGradeGroup) maxGradeGroup.style.display = val === 'numeric' ? 'block' : 'none';
+function toggleGradeFields(type) {
+  document.getElementById('field-max-grade').style.display = (type === 'numeric') ? 'block' : 'none';
+  document.getElementById('field-custom-grades').style.display = (type === 'custom') ? 'block' : 'none';
 }
-gradeType?.addEventListener('change', updateGradeFields);
-updateGradeFields();
+// Init on load
+toggleGradeFields(document.getElementById('id_grade_type').value);
 </script>
-{% endblock %}
 {% endblock %}

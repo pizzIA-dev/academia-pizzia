@@ -411,7 +411,8 @@ def session_edit(request, pk):
         from .forms import SessionForm
         form = SessionForm(instance=session)
     return render(request, 'courses/session_form.html', {
-        'form': form, 'course': course, 'session': session, 'action': 'Editar'})
+        'form': form, 'course': course, 'session': session,
+        'action': 'Editar', 'cancel_pk': session.pk})
 
 
 @login_required
