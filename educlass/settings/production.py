@@ -19,7 +19,8 @@ DATABASES = {
 
 # ── Static files (WhiteNoise) ─────────────────────────────────
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+# WhiteNoise serves files via middleware — no pre-compression needed on Railway
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # ── Cloudinary (all media) ────────────────────────────────────
