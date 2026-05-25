@@ -6,64 +6,71 @@
   <div>
     <div class="breadcrumb">
       <a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a>
-      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-sep">&#8250;</span>
       <a href="{% url 'session_detail' session.pk %}">{{ session.title }}</a>
-      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-sep">&#8250;</span>
       <span>{{ activity.title }}</span>
     </div>
     <h1 class="page-title">{{ activity.title }}</h1>
     <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-top:0.4rem;">
       <span class="activity-due {% if now > activity.due_date %}overdue{% endif %}">
-        ⏰ Entrega: {{ activity.due_date|date:"d/m/Y H:i" }}
+        &#9200; Entrega: {{ activity.due_date|date:"d/m/Y H:i" }}
         {% if now > activity.due_date %} (Vencida){% endif %}
       </span>
       <span style="font-size:0.82rem; color:var(--text-muted);">
-        Nota: 
+        Nota:
         {% if activity.grade_type == 'numeric' %}{{ activity.max_grade|floatformat:0 }} pts
-        {% elif activity.grade_type == 'letter' %}A–F
+        {% elif activity.grade_type == 'letter' %}A-F
         {% else %}Personalizada{% endif %}
       </span>
     </div>
   </div>
-  {% if can_manage %}
-    <a href="{% url 'submissions_list' activity.pk %}" class="btn btn-primary">
-      📋 Ver Entregas ({{ activity.submission_count }})
-    </a>
-  {% endif %}
+  <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+    {% if can_manage %}
+      <a href="{% url 'submissions_list' activity.pk %}" class="btn btn-primary btn-sm">
+        &#128203; Entregas ({{ activity.submission_count }})
+      </a>
+      <a href="{% url 'activity_edit' activity.pk %}" class="btn btn-secondary btn-sm">&#9998; Editar</a>
+      <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-danger btn-sm">&#128465;</a>
+    {% endif %}
+  </div>
 </div>
 
 <div style="display:grid; grid-template-columns:1fr {% if not can_manage %}1fr{% endif %}; gap:1.5rem; flex-wrap:wrap;" class="fade-in">
-  <!-- Instructions -->
   <div>
     <div class="card" style="margin-bottom:1rem;">
-      <h3 class="section-title" style="margin-bottom:1rem;">📋 Instrucciones</h3>
-      <div style="white-space:pre-wrap; color:var(--text-secondary); line-height:1.7; font-size:0.93rem;">{{ activity.instructions }}</div>
+      <h3 class="section-title" style="margin-bottom:1rem;">&#128203; Instrucciones</h3>
+      <div style="white-space:pre-wrap; color:var(--text-secondary); line-height:1.7; font-size:0.93rem;">
+        {{ activity.instructions }}
+      </div>
     </div>
-
     {% if activity.instruction_file %}
       <div class="card">
-        <h3 class="section-title" style="margin-bottom:0.75rem;">📎 Archivo de Instrucciones</h3>
+        <h3 class="section-title" style="margin-bottom:0.75rem;">&#128206; Archivo de Instrucciones</h3>
         <div class="file-item">
           <div class="file-icon file-icon-pdf">DOC</div>
           <div class="file-name" style="flex:1;">Instrucciones - {{ activity.title }}</div>
-          <a href="{{ activity.instruction_file.url }}" target="_blank" class="btn btn-secondary btn-sm">Descargar</a>
+          <a href="{{ activity.instruction_file.url }}" target="_blank" class="btn btn-secondary btn-sm">
+            &#11015; Descargar
+          </a>
         </div>
       </div>
     {% endif %}
   </div>
 
-  <!-- Submission Area (Student) -->
-  {% if request.user.is_student %}
+  {% if not can_manage %}
     <div>
       {% if user_submission %}
         <div class="card" style="border-color: {% if user_submission.is_graded %}rgba(16,185,129,0.4){% else %}rgba(0,198,255,0.3){% endif %};">
           <h3 class="section-title" style="margin-bottom:1rem;">
-            {% if user_submission.is_graded %}✅ Calificado{% else %}📤 Entrega Enviada{% endif %}
+            {% if user_submission.is_graded %}&#9989; Calificado{% else %}&#128228; Entrega Enviada{% endif %}
           </h3>
           {% if user_submission.is_graded %}
             <div class="grade-display" style="margin:1rem 0;">{{ user_submission.grade }}</div>
             {% if activity.grade_type == 'numeric' %}
-              <div style="text-align:center; color:var(--text-muted); font-size:0.82rem;">de {{ activity.max_grade|floatformat:0 }} puntos</div>
+              <div style="text-align:center; color:var(--text-muted); font-size:0.82rem;">
+                de {{ activity.max_grade|floatformat:0 }} puntos
+              </div>
             {% endif %}
             {% if user_submission.teacher_comment %}
               <div style="margin-top:1rem; padding:0.75rem; background:rgba(255,255,255,0.04); border-radius:8px;">
@@ -74,7 +81,7 @@
           {% endif %}
           <hr class="divider">
           <div class="file-item">
-            <div class="file-icon file-icon-other">↑</div>
+            <div class="file-icon file-icon-other">&#8593;</div>
             <div style="flex:1;">
               <div class="file-name">Tu entrega</div>
               <div class="file-meta">{{ user_submission.submitted_at|date:"d/m/Y H:i" }}</div>
@@ -89,17 +96,19 @@
         </div>
       {% elif sub_form %}
         <div class="card">
-          <h3 class="section-title" style="margin-bottom:1rem;">📤 Entregar Actividad</h3>
+          <h3 class="section-title" style="margin-bottom:1rem;">&#128228; Entregar Actividad</h3>
           {% if now > activity.due_date %}
-            <div class="alert alert-warning" style="margin-bottom:1rem;">⚠ La fecha limite ha pasado, pero aun puedes entregar.</div>
+            <div class="alert alert-warning" style="margin-bottom:1rem;">
+              &#9888; La fecha limite ha pasado, pero aun puedes entregar.
+            </div>
           {% endif %}
           <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group">
               <label class="form-label">Tu archivo de respuesta *</label>
               <div class="upload-area" onclick="document.getElementById('id_sub_file').click()">
-                <div class="upload-icon">📁</div>
-                <p style="color:var(--text-secondary); font-size:0.9rem;">Click para seleccionar archivo</p>
+                <div class="upload-icon">&#128193;</div>
+                <p style="color:var(--text-secondary); font-size:0.9rem;">Click para seleccionar</p>
                 <p style="font-size:0.78rem; color:var(--text-muted);">PPT, Excel, Word, PDF · Max 20MB</p>
               </div>
               <input type="file" name="file" id="id_sub_file" style="display:none;"
@@ -108,22 +117,25 @@
             </div>
             <div class="form-group">
               <label class="form-label">Comentario (opcional)</label>
-              <textarea name="comment" class="form-control" rows="2" placeholder="Comentario para el profesor..."></textarea>
+              <textarea name="comment" class="form-control" rows="2"
+                placeholder="Comentario para el profesor..."></textarea>
             </div>
-            <button type="submit" id="btn-submit-activity" class="btn btn-primary btn-block btn-lg">📤 Entregar Actividad</button>
+            <button type="submit" id="btn-submit-activity" class="btn btn-primary btn-block btn-lg">
+              &#128228; Entregar Actividad
+            </button>
           </form>
         </div>
       {% endif %}
     </div>
   {% endif %}
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
 document.getElementById('id_sub_file')?.addEventListener('change', function() {
   const name = this.files[0]?.name;
-  if (name) document.getElementById('sub-file-name').textContent = '✓ ' + name;
+  if (name) document.getElementById('sub-file-name').textContent = 'Archivo: ' + name;
 });
 </script>
-{% endblock %}
 {% endblock %}

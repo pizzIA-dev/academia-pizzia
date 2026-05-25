@@ -348,3 +348,138 @@ def grade_submission(request, pk):
         'submission': submission, 'activity': activity,
         'course': course, 'grade_options': grade_options,
     })
+
+
+# ── EDIT / DELETE ──────────────────────────────────────────
+
+
+@login_required
+def course_edit(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    if not request.user.is_teacher_of(course):
+        messages.error(request, 'Solo el profesor puede editar el curso.')
+        return redirect('course_detail', pk=pk)
+    if request.method == 'POST':
+        from .forms import CourseForm
+        form = CourseForm(request.POST, instance=course)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Curso actualizado correctamente.')
+            return redirect('course_detail', pk=pk)
+    else:
+        from .forms import CourseForm
+        form = CourseForm(instance=course)
+    return render(request, 'courses/course_form.html', {
+        'form': form, 'course': course, 'action': 'Editar'})
+
+
+@login_required
+def course_delete(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    if not request.user.is_teacher_of(course):
+        messages.error(request, 'Solo el profesor puede eliminar el curso.')
+        return redirect('course_detail', pk=pk)
+    if request.method == 'POST':
+        title = course.title
+        course.delete()
+        messages.success(request, f'Curso "{title}" eliminado.')
+        return redirect('dashboard')
+    return render(request, 'courses/confirm_delete.html', {
+        'object': course, 'type': 'curso',
+        'cancel_url': 'course_detail', 'cancel_pk': pk})
+
+
+@login_required
+def session_edit(request, pk):
+    session = get_object_or_404(Session, pk=pk)
+    course = session.course
+    if not request.user.can_manage(course):
+        messages.error(request, 'No tienes permiso para editar esta sesion.')
+        return redirect('session_detail', pk=pk)
+    if request.method == 'POST':
+        from .forms import SessionForm
+        form = SessionForm(request.POST, request.FILES, instance=session)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Sesion actualizada.')
+            return redirect('session_detail', pk=pk)
+    else:
+        from .forms import SessionForm
+        form = SessionForm(instance=session)
+    return render(request, 'courses/session_form.html', {
+        'form': form, 'course': course, 'session': session, 'action': 'Editar'})
+
+
+@login_required
+def session_delete(request, pk):
+    session = get_object_or_404(Session, pk=pk)
+    course = session.course
+    if not request.user.can_manage(course):
+        messages.error(request, 'No tienes permiso.')
+        return redirect('session_detail', pk=pk)
+    if request.method == 'POST':
+        course_pk = course.pk
+        session.delete()
+        messages.success(request, 'Sesion eliminada.')
+        return redirect('course_detail', pk=course_pk)
+    return render(request, 'courses/confirm_delete.html', {
+        'object': session, 'type': 'sesion',
+        'cancel_url': 'session_detail', 'cancel_pk': pk})
+
+
+@login_required
+def activity_edit(request, pk):
+    activity = get_object_or_404(Activity, pk=pk)
+    session = activity.session
+    course = session.course
+    if not request.user.can_manage(course):
+        messages.error(request, 'No tienes permiso.')
+        return redirect('activity_detail', pk=pk)
+    if request.method == 'POST':
+        from .forms import ActivityForm
+        form = ActivityForm(request.POST, request.FILES, instance=activity)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Actividad actualizada.')
+            return redirect('activity_detail', pk=pk)
+    else:
+        from .forms import ActivityForm
+        form = ActivityForm(instance=activity)
+    return render(request, 'courses/activity_form.html', {
+        'form': form, 'session': session, 'course': course,
+        'activity': activity, 'action': 'Editar'})
+
+
+@login_required
+def activity_delete(request, pk):
+    activity = get_object_or_404(Activity, pk=pk)
+    session = activity.session
+    course = session.course
+    if not request.user.can_manage(course):
+        messages.error(request, 'No tienes permiso.')
+        return redirect('activity_detail', pk=pk)
+    if request.method == 'POST':
+        session_pk = session.pk
+        activity.delete()
+        messages.success(request, 'Actividad eliminada.')
+        return redirect('session_detail', pk=session_pk)
+    return render(request, 'courses/confirm_delete.html', {
+        'object': activity, 'type': 'actividad',
+        'cancel_url': 'activity_detail', 'cancel_pk': pk})
+
+
+@login_required
+def remove_student(request, pk, student_pk):
+    """Teacher removes a student from course."""
+    course = get_object_or_404(Course, pk=pk)
+    if not request.user.is_teacher_of(course):
+        messages.error(request, 'Solo el profesor puede remover estudiantes.')
+        return redirect('course_detail', pk=pk)
+    if request.method == 'POST':
+        from accounts.models import CustomUser
+        student = get_object_or_404(CustomUser, pk=student_pk)
+        course.students.remove(student)
+        course.moderators.remove(student)
+        EnrollmentRequest.objects.filter(user=student, course=course).update(status='rejected')
+        messages.success(request, f'{student.display_name} fue removido del curso.')
+    return redirect('enrollment_requests', pk=pk)

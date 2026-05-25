@@ -11,7 +11,9 @@
       <span class="breadcrumb-sep">&#8250;</span>
       <span>Semana {{ session.week_number }}</span>
     </div>
-    <div style="font-size:0.82rem; color:var(--accent); font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">Semana {{ session.week_number }}</div>
+    <div style="font-size:0.82rem; color:var(--accent); font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">
+      Semana {{ session.week_number }}
+    </div>
     <h1 class="page-title">{{ session.title }}</h1>
     {% if session.description %}
       <p class="page-subtitle">{{ session.description }}</p>
@@ -22,28 +24,27 @@
     <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
       <a href="{% url 'material_upload' session.pk %}" class="btn btn-secondary btn-sm">&#128206; Subir Material</a>
       <a href="{% url 'activity_create' session.pk %}" class="btn btn-primary btn-sm">+ Actividad</a>
+      <a href="{% url 'session_edit' session.pk %}" class="btn btn-secondary btn-sm">&#9998; Editar</a>
+      <a href="{% url 'session_delete' session.pk %}" class="btn btn-danger btn-sm">&#128465; Eliminar</a>
     </div>
   {% endif %}
 </div>
 
-<!-- Video Section -->
 {% if session.video_file or session.video_link %}
-  <div class="card fade-in" style="margin-bottom:1.5rem; border-color:rgba(255,0,0,0.2);">
+  <div class="card fade-in" style="margin-bottom:1.5rem; border-color:rgba(255,100,100,0.2);">
     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem;">
       <div>
-        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.3rem;">Grabacion de clase</div>
+        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.3rem;">
+          Grabacion de clase
+        </div>
         <div style="font-size:0.95rem; font-weight:600;">&#127909; {{ session.title }}</div>
       </div>
       <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
         {% if session.video_file %}
-          <a href="{{ session.video_file.url }}" target="_blank" class="video-link-btn">
-            &#9654; Ver Grabacion (archivo)
-          </a>
+          <a href="{{ session.video_file.url }}" target="_blank" class="video-link-btn">&#9654; Ver (archivo)</a>
         {% endif %}
         {% if session.video_link %}
-          <a href="{{ session.video_link }}" target="_blank" rel="noopener" class="video-link-btn">
-            &#9654; Ver Grabacion (enlace)
-          </a>
+          <a href="{{ session.video_link }}" target="_blank" rel="noopener" class="video-link-btn">&#9654; Ver (enlace)</a>
         {% endif %}
       </div>
     </div>
@@ -54,7 +55,7 @@
 <div class="section-header fade-in">
   <span class="section-title">&#128206; Material de Clase</span>
   {% if can_manage %}
-    <a href="{% url 'material_upload' session.pk %}" class="btn btn-secondary btn-sm">Subir Archivo</a>
+    <a href="{% url 'material_upload' session.pk %}" class="btn btn-secondary btn-sm">+ Subir Archivo</a>
   {% endif %}
 </div>
 
@@ -73,19 +74,20 @@
           <div class="file-name">{{ material.name }}</div>
           <div class="file-meta">{{ material.uploaded_at|date:"d/m/Y" }}</div>
         </div>
-        <a href="{{ material.file.url }}" target="_blank" class="btn btn-secondary btn-sm">Descargar</a>
+        <a href="{{ material.file.url }}" target="_blank" class="btn btn-secondary btn-sm">&#11015; Descargar</a>
         {% if can_manage %}
-          <form method="POST" action="{% url 'material_delete' material.pk %}" data-confirm="Eliminar '{{ material.name }}'?" style="display:inline;">
+          <form method="POST" action="{% url 'material_delete' material.pk %}"
+            data-confirm="Eliminar '{{ material.name }}'?" style="display:inline;">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-sm">&#10005;</button>
+            <button type="submit" class="btn btn-danger btn-sm">&#128465;</button>
           </form>
         {% endif %}
       </div>
     {% endfor %}
   </div>
 {% else %}
-  <div class="empty-state" style="padding:2rem; margin-bottom:1.5rem;">
-    <div class="empty-icon" style="font-size:2rem;">&#128194;</div>
+  <div class="empty-state" style="padding:1.5rem; margin-bottom:1.5rem;">
+    <div class="empty-icon" style="font-size:1.8rem;">&#128194;</div>
     <p>No hay materiales todavia</p>
   </div>
 {% endif %}
@@ -94,7 +96,7 @@
 <div class="section-header fade-in">
   <span class="section-title">&#128221; Actividades</span>
   {% if can_manage %}
-    <a href="{% url 'activity_create' session.pk %}" class="btn btn-primary btn-sm">+ Actividad</a>
+    <a href="{% url 'activity_create' session.pk %}" class="btn btn-primary btn-sm">+ Nueva Actividad</a>
   {% endif %}
 </div>
 
@@ -105,14 +107,18 @@
         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.5rem;">
           <div>
             <h4 style="font-weight:700; margin-bottom:0.3rem;">
-              <a href="{% url 'activity_detail' activity.pk %}" style="color:inherit; text-decoration:none;">{{ activity.title }}</a>
+              <a href="{% url 'activity_detail' activity.pk %}" style="color:inherit; text-decoration:none;">
+                {{ activity.title }}
+              </a>
             </h4>
             <div class="activity-due">&#9200; Entrega: {{ activity.due_date|date:"d/m/Y H:i" }}</div>
           </div>
-          <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
             {% if can_manage %}
               <span style="font-size:0.82rem; color:var(--text-muted);">{{ activity.submission_count }} entregas</span>
               <a href="{% url 'submissions_list' activity.pk %}" class="btn btn-secondary btn-sm">Ver Entregas</a>
+              <a href="{% url 'activity_edit' activity.pk %}" class="btn btn-secondary btn-sm">&#9998;</a>
+              <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-danger btn-sm">&#128465;</a>
             {% endif %}
             <a href="{% url 'activity_detail' activity.pk %}" class="btn btn-primary btn-sm">Ver &#8594;</a>
           </div>
@@ -121,8 +127,8 @@
     {% endfor %}
   </div>
 {% else %}
-  <div class="empty-state" style="padding:2rem;">
-    <div class="empty-icon" style="font-size:2rem;">&#128221;</div>
+  <div class="empty-state" style="padding:1.5rem;">
+    <div class="empty-icon" style="font-size:1.8rem;">&#128221;</div>
     <p>No hay actividades en esta sesion</p>
   </div>
 {% endif %}

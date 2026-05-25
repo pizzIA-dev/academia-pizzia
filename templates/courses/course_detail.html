@@ -12,27 +12,31 @@
     <h1 class="page-title">{{ course.title }}</h1>
     {% if course.description %}<p class="page-subtitle">{{ course.description }}</p>{% endif %}
   </div>
-  {% if can_manage %}
-    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-      <a href="{% url 'session_create' course.pk %}" class="btn btn-primary">+ Sesion</a>
-      {% if is_owner %}
-        <a href="{% url 'course_moderators' course.pk %}" class="btn btn-secondary">&#128737; Moderadores</a>
-      {% endif %}
-    </div>
-  {% endif %}
+  <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+    {% if can_manage %}
+      <a href="{% url 'session_create' course.pk %}" class="btn btn-primary btn-sm">+ Sesion</a>
+    {% endif %}
+    {% if is_owner %}
+      <a href="{% url 'course_edit' course.pk %}" class="btn btn-secondary btn-sm">&#9998; Editar Curso</a>
+      <a href="{% url 'course_moderators' course.pk %}" class="btn btn-secondary btn-sm">&#128737; Moderadores</a>
+      <a href="{% url 'course_delete' course.pk %}" class="btn btn-danger btn-sm">&#128465;</a>
+    {% endif %}
+  </div>
 </div>
 
 {% if is_owner or can_manage %}
   <div class="card fade-in" style="margin-bottom:1.5rem;">
     <div style="display:flex; align-items:center; gap:2rem; flex-wrap:wrap;">
       <div>
-        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Enlace de inscripcion</div>
-        <div style="font-family:monospace; font-size:0.95rem; color:var(--accent); cursor:pointer;"
+        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">
+          Enlace de inscripcion
+        </div>
+        <div style="font-family:monospace; font-size:0.92rem; color:var(--accent); cursor:pointer;"
           id="enroll-link" data-url="{{ request.scheme }}://{{ request.get_host }}/unirse/{{ course.code }}/">
           {{ request.scheme }}://{{ request.get_host }}/unirse/{{ course.code }}/
         </div>
         <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;">
-          Comparte este link con tus estudiantes &#183; Click para copiar
+          Comparte con tus estudiantes &#183; Click para copiar
         </div>
       </div>
       <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
@@ -45,7 +49,8 @@
           <div class="stat-label">Sesiones</div>
         </div>
         {% if pending_count %}
-          <a href="{% url 'enrollment_requests' course.pk %}" class="stat-card" style="border-color:rgba(245,158,11,0.4); text-decoration:none;">
+          <a href="{% url 'enrollment_requests' course.pk %}" class="stat-card"
+            style="border-color:rgba(245,158,11,0.4); text-decoration:none; cursor:pointer;">
             <div class="stat-value" style="color:var(--warning);">{{ pending_count }}</div>
             <div class="stat-label">Solicitudes</div>
           </a>
@@ -61,9 +66,13 @@
       <div class="card" style="margin-bottom:1rem;">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.75rem;">
           <div>
-            <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">Semana {{ session.week_number }}</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">
+              Semana {{ session.week_number }}
+            </div>
             <h3 style="font-size:1.05rem; font-weight:700; margin-top:0.2rem;">
-              <a href="{% url 'session_detail' session.pk %}" style="color:inherit; text-decoration:none;">{{ session.title }}</a>
+              <a href="{% url 'session_detail' session.pk %}" style="color:inherit; text-decoration:none;">
+                {{ session.title }}
+              </a>
             </h3>
             <div style="font-size:0.82rem; color:var(--text-muted); margin-top:0.3rem;">
               &#128197; {{ session.date|date:"d/m/Y" }}
@@ -72,7 +81,13 @@
               {% if session.video_link or session.video_file %} &bull; &#127909; Video{% endif %}
             </div>
           </div>
-          <a href="{% url 'session_detail' session.pk %}" class="btn btn-secondary btn-sm">Ver sesion &#8594;</a>
+          <div style="display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;">
+            {% if can_manage %}
+              <a href="{% url 'session_edit' session.pk %}" class="btn btn-secondary btn-sm">&#9998;</a>
+              <a href="{% url 'session_delete' session.pk %}" class="btn btn-danger btn-sm">&#128465;</a>
+            {% endif %}
+            <a href="{% url 'session_detail' session.pk %}" class="btn btn-primary btn-sm">Ver &#8594;</a>
+          </div>
         </div>
       </div>
     {% endfor %}
@@ -82,7 +97,9 @@
     <div class="empty-icon">&#128218;</div>
     <h3>No hay sesiones todavia</h3>
     {% if can_manage %}
-      <a href="{% url 'session_create' course.pk %}" class="btn btn-primary" style="margin-top:1rem;">Crear primera sesion</a>
+      <a href="{% url 'session_create' course.pk %}" class="btn btn-primary" style="margin-top:1rem;">
+        Crear primera sesion
+      </a>
     {% else %}
       <p>El profesor aun no ha publicado sesiones.</p>
     {% endif %}
