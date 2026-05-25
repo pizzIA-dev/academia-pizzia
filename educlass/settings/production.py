@@ -23,7 +23,7 @@ if 'whitenoise.middleware.WhiteNoiseMiddleware' not in MIDDLEWARE:
 
 # ── Static files ──────────────────────────────────────────────
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+# STATICFILES_STORAGE removed -- now part of STORAGES dict
 
 # ── Cloudinary ────────────────────────────────────────────────
 CLOUDINARY_URL = config('CLOUDINARY_URL')
