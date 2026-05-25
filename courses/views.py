@@ -504,7 +504,7 @@ def _cloudinary_get_bytes(file_url):
     """
     import cloudinary.utils
     import requests as req
-    import zipfile, io
+    import zipfile, io, re
     from urllib.parse import unquote
 
     # Extract resource_type and public_id from Cloudinary URL
