@@ -197,7 +197,9 @@ function handleCardClick(url, type, name, viewUrl, dlUrl) {
     openPreview(url, 'video', name, dlUrl);
   } else if (type === 'pdf') {
     // Use /view/ endpoint — Django serves PDF with correct Content-Type inline
-    openPreview(viewUrl || url, 'pdf', name, dlUrl);
+    // Append filename to viewUrl so Chrome's native PDF download uses correct name
+    const pdfViewUrl = viewUrl ? (viewUrl + encodeURIComponent(name) + '.pdf') : url;
+    openPreview(pdfViewUrl, 'pdf', name, dlUrl);
   } else {
     // Word/Excel/PPT: open directly in new tab
     window.open(url, '_blank');
