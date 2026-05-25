@@ -54,6 +54,120 @@
   </div>
 {% endif %}
 
+
+<!-- ═══════════ GRABACIONES DE LA CLASE ═══════════ -->
+<div class="section-header fade-in" style="margin-top:2.5rem;">
+  <span class="section-title">🎬 Grabaciones de la Clase</span>
+  {% if can_manage %}
+  <button onclick="document.getElementById('rec-form-wrap').style.display=document.getElementById('rec-form-wrap').style.display==='none'?'block':'none'"
+    class="btn btn-primary btn-sm">+ Agregar Grabación</button>
+  {% endif %}
+</div>
+
+{% if can_manage %}
+<div id="rec-form-wrap" style="display:none;margin-bottom:1.5rem;">
+  <div class="card fade-in" style="padding:1.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;">
+    <form method="POST" action="{% url 'recording_add' session.pk %}">
+      {% csrf_token %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+        <div>
+          <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Título *</label>
+          <input type="text" name="title" required
+            style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
+            placeholder="Ej: Clase 1 - Introducción">
+        </div>
+        <div>
+          <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Fuente</label>
+          <select name="source"
+            style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;">
+            <option value="drive">📁 Google Drive</option>
+            <option value="youtube">▶️ YouTube</option>
+            <option value="zoom">💻 Zoom</option>
+            <option value="meet">📹 Google Meet</option>
+            <option value="other">🔗 Otro enlace</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Enlace *</label>
+        <input type="url" name="link" required
+          style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
+          placeholder="https://drive.google.com/... o https://youtu.be/...">
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Descripción (opcional)</label>
+        <input type="text" name="description"
+          style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
+          placeholder="Ej: Temas: repaso examen, ejercicios prácticos">
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+        <button type="button" onclick="document.getElementById('rec-form-wrap').style.display='none'"
+          style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.7);border-radius:8px;padding:.6rem 1.2rem;cursor:pointer;">Cancelar</button>
+        <button type="submit"
+          style="background:linear-gradient(135deg,#38bdf8,#818cf8);border:none;color:#fff;border-radius:8px;padding:.6rem 1.4rem;cursor:pointer;font-weight:600;">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if recordings %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;margin-bottom:2rem;">
+  {% for rec in recordings %}
+  <div class="card fade-in" style="border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#12172a;">
+    {% if rec.is_youtube and rec.embed_url %}
+    <div style="position:relative;padding-top:56.25%;background:#000;">
+      <iframe src="{{ rec.embed_url }}"
+        style="position:absolute;inset:0;width:100%;height:100%;border:none;"
+        allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+        allowfullscreen></iframe>
+    </div>
+    {% else %}
+    <a href="{{ rec.link }}" target="_blank" rel="noopener"
+      style="display:block;padding:1.5rem;background:linear-gradient(135deg,{{ rec.source_color }}22,{{ rec.source_color }}11);
+             text-align:center;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="font-size:2.5rem;margin-bottom:.5rem;">{{ rec.source_icon }}</div>
+      <div style="color:{{ rec.source_color }};font-size:.8rem;font-weight:600;">
+        {{ rec.get_source_display }} → Abrir grabación
+      </div>
+    </a>
+    {% endif %}
+    <div style="padding:1rem;">
+      <div style="font-weight:600;color:#fff;margin-bottom:.3rem;font-size:.95rem;">{{ rec.title }}</div>
+      {% if rec.description %}
+      <div style="color:rgba(255,255,255,.5);font-size:.8rem;margin-bottom:.5rem;">{{ rec.description }}</div>
+      {% endif %}
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="color:rgba(255,255,255,.35);font-size:.75rem;">{{ rec.added_at|date:"d/m/Y" }}</span>
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          <a href="{{ rec.link }}" target="_blank" rel="noopener"
+            style="font-size:.75rem;color:#38bdf8;text-decoration:none;background:rgba(56,189,248,.1);
+                   padding:.25rem .6rem;border-radius:6px;">🔗 Abrir</a>
+          {% if can_manage %}
+          <form method="POST" action="{% url 'recording_delete' rec.pk %}" style="display:inline;"
+            onsubmit="return confirm('¿Eliminar esta grabación?')">
+            {% csrf_token %}
+            <button type="submit"
+              style="font-size:.75rem;color:#ef4444;background:rgba(239,68,68,.1);border:none;
+                     padding:.25rem .6rem;border-radius:6px;cursor:pointer;">🗑</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state fade-in" style="padding:2rem;text-align:center;margin-bottom:2rem;">
+  <div style="font-size:2rem;margin-bottom:.5rem;">🎬</div>
+  <p style="color:rgba(255,255,255,.4);font-size:.9rem;">No hay grabaciones en esta sesión</p>
+</div>
+{% endif %}
+
+
+
+
 <!-- Materials -->
 <div class="section-header fade-in">
   <span class="section-title">&#128206; Material de Clase</span>
@@ -626,117 +740,5 @@ function fmtTime(s) {
 }
 </script>
 {% endif %}
-
-
-<!-- ═══════════ GRABACIONES DE LA CLASE ═══════════ -->
-<div class="section-header fade-in" style="margin-top:2.5rem;">
-  <span class="section-title">🎬 Grabaciones de la Clase</span>
-  {% if can_manage %}
-  <button onclick="document.getElementById('rec-form-wrap').style.display=document.getElementById('rec-form-wrap').style.display==='none'?'block':'none'"
-    class="btn btn-primary btn-sm">+ Agregar Grabación</button>
-  {% endif %}
-</div>
-
-{% if can_manage %}
-<div id="rec-form-wrap" style="display:none;margin-bottom:1.5rem;">
-  <div class="card fade-in" style="padding:1.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;">
-    <form method="POST" action="{% url 'recording_add' session.pk %}">
-      {% csrf_token %}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
-        <div>
-          <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Título *</label>
-          <input type="text" name="title" required
-            style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
-            placeholder="Ej: Clase 1 - Introducción">
-        </div>
-        <div>
-          <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Fuente</label>
-          <select name="source"
-            style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;">
-            <option value="drive">📁 Google Drive</option>
-            <option value="youtube">▶️ YouTube</option>
-            <option value="zoom">💻 Zoom</option>
-            <option value="meet">📹 Google Meet</option>
-            <option value="other">🔗 Otro enlace</option>
-          </select>
-        </div>
-      </div>
-      <div style="margin-bottom:1rem;">
-        <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Enlace *</label>
-        <input type="url" name="link" required
-          style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
-          placeholder="https://drive.google.com/... o https://youtu.be/...">
-      </div>
-      <div style="margin-bottom:1rem;">
-        <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Descripción (opcional)</label>
-        <input type="text" name="description"
-          style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
-          placeholder="Ej: Temas: repaso examen, ejercicios prácticos">
-      </div>
-      <div style="display:flex;gap:.75rem;justify-content:flex-end;">
-        <button type="button" onclick="document.getElementById('rec-form-wrap').style.display='none'"
-          style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.7);border-radius:8px;padding:.6rem 1.2rem;cursor:pointer;">Cancelar</button>
-        <button type="submit"
-          style="background:linear-gradient(135deg,#38bdf8,#818cf8);border:none;color:#fff;border-radius:8px;padding:.6rem 1.4rem;cursor:pointer;font-weight:600;">Guardar</button>
-      </div>
-    </form>
-  </div>
-</div>
-{% endif %}
-
-{% if recordings %}
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;margin-bottom:2rem;">
-  {% for rec in recordings %}
-  <div class="card fade-in" style="border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#12172a;">
-    {% if rec.is_youtube and rec.embed_url %}
-    <div style="position:relative;padding-top:56.25%;background:#000;">
-      <iframe src="{{ rec.embed_url }}"
-        style="position:absolute;inset:0;width:100%;height:100%;border:none;"
-        allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
-        allowfullscreen></iframe>
-    </div>
-    {% else %}
-    <a href="{{ rec.link }}" target="_blank" rel="noopener"
-      style="display:block;padding:1.5rem;background:linear-gradient(135deg,{{ rec.source_color }}22,{{ rec.source_color }}11);
-             text-align:center;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.06);">
-      <div style="font-size:2.5rem;margin-bottom:.5rem;">{{ rec.source_icon }}</div>
-      <div style="color:{{ rec.source_color }};font-size:.8rem;font-weight:600;">
-        {{ rec.get_source_display }} → Abrir grabación
-      </div>
-    </a>
-    {% endif %}
-    <div style="padding:1rem;">
-      <div style="font-weight:600;color:#fff;margin-bottom:.3rem;font-size:.95rem;">{{ rec.title }}</div>
-      {% if rec.description %}
-      <div style="color:rgba(255,255,255,.5);font-size:.8rem;margin-bottom:.5rem;">{{ rec.description }}</div>
-      {% endif %}
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="color:rgba(255,255,255,.35);font-size:.75rem;">{{ rec.added_at|date:"d/m/Y" }}</span>
-        <div style="display:flex;gap:.5rem;align-items:center;">
-          <a href="{{ rec.link }}" target="_blank" rel="noopener"
-            style="font-size:.75rem;color:#38bdf8;text-decoration:none;background:rgba(56,189,248,.1);
-                   padding:.25rem .6rem;border-radius:6px;">🔗 Abrir</a>
-          {% if can_manage %}
-          <form method="POST" action="{% url 'recording_delete' rec.pk %}" style="display:inline;"
-            onsubmit="return confirm('¿Eliminar esta grabación?')">
-            {% csrf_token %}
-            <button type="submit"
-              style="font-size:.75rem;color:#ef4444;background:rgba(239,68,68,.1);border:none;
-                     padding:.25rem .6rem;border-radius:6px;cursor:pointer;">🗑</button>
-          </form>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% else %}
-<div class="empty-state fade-in" style="padding:2rem;text-align:center;margin-bottom:2rem;">
-  <div style="font-size:2rem;margin-bottom:.5rem;">🎬</div>
-  <p style="color:rgba(255,255,255,.4);font-size:.9rem;">No hay grabaciones en esta sesión</p>
-</div>
-{% endif %}
-
 
 {% endblock %}
