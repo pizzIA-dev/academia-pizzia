@@ -492,8 +492,7 @@ def remove_student(request, pk, student_pk):
 
 @login_required
 def download_material(request, pk):
-    """Force-download a material file, works with Cloudinary.""""
-    import urllib.request
+    """Force-download a material file, works with Cloudinary."""
     material = get_object_or_404(SessionMaterial, pk=pk)
     course = material.session.course
     if not request.user.is_member_of(course):
