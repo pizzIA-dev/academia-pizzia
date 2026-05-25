@@ -6,39 +6,50 @@
   <div>
     <div class="breadcrumb">
       <a href="{% url 'dashboard' %}">Dashboard</a>
-      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-sep">&#8250;</span>
       <span>{{ course.title }}</span>
     </div>
     <h1 class="page-title">{{ course.title }}</h1>
-    {% if course.description %}
-      <p class="page-subtitle">{{ course.description }}</p>
-    {% endif %}
+    {% if course.description %}<p class="page-subtitle">{{ course.description }}</p>{% endif %}
   </div>
-  <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:flex-end;">
-    {% if can_manage %}
-      <a href="{% url 'session_create' course.pk %}" id="btn-new-session" class="btn btn-primary">+ Nueva Sesion</a>
-    {% endif %}
-    {% if is_owner %}
-      <a href="{% url 'course_moderators' course.pk %}" class="btn btn-secondary btn-sm">👥 Moderadores</a>
-    {% endif %}
-  </div>
+  {% if can_manage %}
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <a href="{% url 'session_create' course.pk %}" class="btn btn-primary">+ Sesion</a>
+      {% if is_owner %}
+        <a href="{% url 'course_moderators' course.pk %}" class="btn btn-secondary">&#128737; Moderadores</a>
+      {% endif %}
+    </div>
+  {% endif %}
 </div>
 
-{% if is_owner %}
-  <div class="card fade-in" style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
-    <div>
-      <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Codigo del curso</div>
-      <div class="course-code-box" data-code="{{ course.code }}">{{ course.code }} 📋</div>
-      <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.4rem;">Click para copiar · Comparte con tus estudiantes</div>
-    </div>
-    <div style="display:flex; gap:2rem;">
-      <div class="stat-card" style="min-width:100px; text-align:center;">
-        <div class="stat-value">{{ course.students.count }}</div>
-        <div class="stat-label">Estudiantes</div>
+{% if is_owner or can_manage %}
+  <div class="card fade-in" style="margin-bottom:1.5rem;">
+    <div style="display:flex; align-items:center; gap:2rem; flex-wrap:wrap;">
+      <div>
+        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Enlace de inscripcion</div>
+        <div style="font-family:monospace; font-size:0.95rem; color:var(--accent); cursor:pointer;"
+          id="enroll-link" data-url="{{ request.scheme }}://{{ request.get_host }}/unirse/{{ course.code }}/">
+          {{ request.scheme }}://{{ request.get_host }}/unirse/{{ course.code }}/
+        </div>
+        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;">
+          Comparte este link con tus estudiantes &#183; Click para copiar
+        </div>
       </div>
-      <div class="stat-card" style="min-width:100px; text-align:center;">
-        <div class="stat-value">{{ sessions.count }}</div>
-        <div class="stat-label">Sesiones</div>
+      <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+        <div class="stat-card">
+          <div class="stat-value">{{ course.students.count }}</div>
+          <div class="stat-label">Estudiantes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ sessions.count }}</div>
+          <div class="stat-label">Sesiones</div>
+        </div>
+        {% if pending_count %}
+          <a href="{% url 'enrollment_requests' course.pk %}" class="stat-card" style="border-color:rgba(245,158,11,0.4); text-decoration:none;">
+            <div class="stat-value" style="color:var(--warning);">{{ pending_count }}</div>
+            <div class="stat-label">Solicitudes</div>
+          </a>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -55,19 +66,20 @@
               <a href="{% url 'session_detail' session.pk %}" style="color:inherit; text-decoration:none;">{{ session.title }}</a>
             </h3>
             <div style="font-size:0.82rem; color:var(--text-muted); margin-top:0.3rem;">
-              📅 {{ session.date|date:"d/m/Y" }}
-              {% if session.materials.count %} · 📎 {{ session.materials.count }} archivos{% endif %}
-              {% if session.activities.count %} · 📝 {{ session.activities.count }} actividades{% endif %}
+              &#128197; {{ session.date|date:"d/m/Y" }}
+              {% if session.materials.count %} &bull; &#128206; {{ session.materials.count }} archivos{% endif %}
+              {% if session.activities.count %} &bull; &#128221; {{ session.activities.count }} actividades{% endif %}
+              {% if session.video_link or session.video_file %} &bull; &#127909; Video{% endif %}
             </div>
           </div>
-          <a href="{% url 'session_detail' session.pk %}" class="btn btn-secondary btn-sm">Ver sesion →</a>
+          <a href="{% url 'session_detail' session.pk %}" class="btn btn-secondary btn-sm">Ver sesion &#8594;</a>
         </div>
       </div>
     {% endfor %}
   </div>
 {% else %}
   <div class="empty-state">
-    <div class="empty-icon">📖</div>
+    <div class="empty-icon">&#128218;</div>
     <h3>No hay sesiones todavia</h3>
     {% if can_manage %}
       <a href="{% url 'session_create' course.pk %}" class="btn btn-primary" style="margin-top:1rem;">Crear primera sesion</a>
@@ -76,4 +88,17 @@
     {% endif %}
   </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('enroll-link')?.addEventListener('click', function() {
+  navigator.clipboard.writeText(this.dataset.url).then(() => {
+    const orig = this.textContent;
+    this.textContent = 'Copiado!';
+    this.style.color = 'var(--success)';
+    setTimeout(() => { this.textContent = orig; this.style.color = ''; }, 2000);
+  });
+});
+</script>
 {% endblock %}

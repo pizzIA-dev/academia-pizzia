@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import RegisterForm, CustomLoginForm
+from .forms import RegisterForm, LoginForm
 
 
 def register_view(request):
@@ -26,7 +26,7 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     if request.method == 'POST':
-        form = CustomLoginForm(request, data=request.POST)
+        form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
@@ -35,7 +35,7 @@ def login_view(request):
         else:
             messages.error(request, 'Usuario o contrasena incorrectos.')
     else:
-        form = CustomLoginForm()
+        form = LoginForm()
     return render(request, 'accounts/login.html', {'form': form})
 
 

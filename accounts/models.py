@@ -3,20 +3,41 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
-    ROLE_CHOICES = [
-        ('teacher', 'Profesor'),
-        ('student', 'Estudiante'),
-    ]
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
-    bio = models.TextField(blank=True)
+    bio = models.TextField(blank=True, verbose_name='Bio')
 
-    @property
-    def is_teacher(self):
-        return self.role == 'teacher'
-
-    @property
-    def is_student(self):
-        return self.role == 'student'
+    class Meta:
+        verbose_name = 'Usuario'
+        verbose_name_plural = 'Usuarios'
 
     def __str__(self):
-        return f'{self.get_full_name() or self.username} ({self.get_role_display()})'
+        return self.get_full_name() or self.username
+
+    def get_taught_courses(self):
+        return self.courses_taught.filter(is_active=True)
+
+    def get_moderated_courses(self):
+        return self.courses_moderated.filter(is_active=True)
+
+    def get_enrolled_courses(self):
+        return self.courses_enrolled.filter(is_active=True)
+
+    def is_teacher_of(self, course):
+        return self.pk == course.teacher_id
+
+    def is_moderator_of(self, course):
+        return self.courses_moderated.filter(pk=course.pk).exists()
+
+    def is_student_of(self, course):
+        return self.courses_enrolled.filter(pk=course.pk).exists()
+
+    def can_manage(self, course):
+        return self.is_teacher_of(course) or self.is_moderator_of(course)
+
+    def is_member_of(self, course):
+        return (self.is_teacher_of(course) or
+                self.is_moderator_of(course) or
+                self.is_student_of(course))
+
+    @property
+    def display_name(self):
+        return self.get_full_name() or self.username

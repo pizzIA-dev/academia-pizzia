@@ -711,3 +711,65 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   transition: width 0.3s ease;
   width: 0%;
 }
+
+/* ── Role pill ── */
+.role-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+/* ── Course card grid ── */
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+.course-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+.course-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+.course-card-header {
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.course-card-body {
+  padding: 0 1.25rem;
+  flex: 1;
+}
+.course-card-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+.course-title { font-size: 1rem; font-weight: 700; }
+.course-meta { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 0.5rem; }
+.course-code-small { font-size: 0.78rem; color: var(--text-muted); padding-bottom: 0.75rem; }
+/* ── Warning button ── */
+.btn-warning {
+  background: rgba(245,158,11,0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245,158,11,0.3);
+}
+.btn-warning:hover { background: rgba(245,158,11,0.25); }
+/* ── Success/Warning colors ── */
+:root {
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}

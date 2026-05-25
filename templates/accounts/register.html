@@ -1,87 +1,83 @@
 {% extends 'base.html' %}
-{% block title %}Crear Cuenta{% endblock %}
+{% block title %}Registro{% endblock %}
 
 {% block content %}
-<div class="auth-wrapper" style="align-items:flex-start; padding-top:2rem;">
-  <div class="auth-card fade-in" style="max-width:520px;">
-    <h1 class="auth-title">Crear Cuenta</h1>
-    <p class="auth-subtitle">Completa el formulario para unirte a EduClass</p>
-    
-    <form method="POST" action="{% url 'register' %}">
+<div class="form-container fade-in" style="padding-top:3rem;">
+  <div style="text-align:center; margin-bottom:2rem;">
+    <div style="font-size:2.5rem; margin-bottom:0.5rem;">&#127891;</div>
+    <h1 style="font-size:1.8rem; font-weight:800; background:linear-gradient(135deg,var(--accent),var(--accent-2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
+      Crear cuenta
+    </h1>
+    <p style="color:var(--text-muted); margin-top:0.5rem;">
+      Puedes crear cursos o inscribirte en los de otros
+    </p>
+  </div>
+
+  <div class="card">
+    <form method="POST">
       {% csrf_token %}
-      
-      <!-- Role selector -->
-      <div class="form-group">
-        <label class="form-label">Tipo de cuenta</label>
-        <div class="role-selector">
-          <div class="role-option">
-            <input type="radio" name="role" id="role_teacher" value="teacher">
-            <label class="role-label" for="role_teacher">
-              <span class="role-icon">👨‍🏫</span>
-              <strong>Profesor</strong>
-              <span style="font-size:0.75rem; color:var(--text-muted);">Crea y gestiona cursos</span>
-            </label>
-          </div>
-          <div class="role-option">
-            <input type="radio" name="role" id="role_student" value="student" checked>
-            <label class="role-label" for="role_student">
-              <span class="role-icon">👨‍🎓</span>
-              <strong>Estudiante</strong>
-              <span style="font-size:0.75rem; color:var(--text-muted);">Accede a tus cursos</span>
-            </label>
-          </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input type="text" name="first_name" class="form-control"
+            value="{{ form.first_name.value|default:'' }}"
+            placeholder="Tu nombre" required>
+          {% for e in form.first_name.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellido *</label>
+          <input type="text" name="last_name" class="form-control"
+            value="{{ form.last_name.value|default:'' }}"
+            placeholder="Tu apellido" required>
+          {% for e in form.last_name.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
-        <div class="form-group">
-          <label class="form-label" for="id_first_name">Nombre</label>
-          <input type="text" name="first_name" id="id_first_name" class="form-control" placeholder="Juan" required>
-          {% for error in form.first_name.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="id_last_name">Apellido</label>
-          <input type="text" name="last_name" id="id_last_name" class="form-control" placeholder="Perez" required>
-          {% for error in form.last_name.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-        </div>
-      </div>
-      
       <div class="form-group">
-        <label class="form-label" for="id_email">Correo electronico</label>
-        <input type="email" name="email" id="id_email" class="form-control" placeholder="tu@correo.com" required>
-        {% for error in form.email.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-      </div>
-      
-      <div class="form-group">
-        <label class="form-label" for="id_username">Nombre de usuario</label>
-        <input type="text" name="username" id="id_username" class="form-control" placeholder="juanperez123" required>
-        {% for error in form.username.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-      </div>
-      
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
-        <div class="form-group">
-          <label class="form-label" for="id_password1">Contrasena</label>
-          <input type="password" name="password1" id="id_password1" class="form-control" required>
-          {% for error in form.password1.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="id_password2">Confirmar contrasena</label>
-          <input type="password" name="password2" id="id_password2" class="form-control" required>
-          {% for error in form.password2.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-        </div>
+        <label class="form-label">Correo electronico *</label>
+        <input type="email" name="email" class="form-control"
+          value="{{ form.email.value|default:'' }}"
+          placeholder="tu@email.com" required>
+        {% for e in form.email.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
       </div>
 
-      {% for error in form.non_field_errors %}
-        <p class="form-error" style="margin-bottom:0.75rem;">{{ error }}</p>
-      {% endfor %}
-      
+      <div class="form-group">
+        <label class="form-label">Usuario *</label>
+        <input type="text" name="username" class="form-control"
+          value="{{ form.username.value|default:'' }}"
+          placeholder="nombre_de_usuario" required autocomplete="username">
+        <p class="form-hint">Solo letras, numeros y guiones bajos. Se usa para iniciar sesion.</p>
+        {% for e in form.username.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Contrasena *</label>
+        <input type="password" name="password1" class="form-control"
+          placeholder="Minimo 8 caracteres" required autocomplete="new-password">
+        {% for e in form.password1.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirmar contrasena *</label>
+        <input type="password" name="password2" class="form-control"
+          placeholder="Repite la contrasena" required autocomplete="new-password">
+        {% for e in form.password2.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      {% if form.non_field_errors %}
+        {% for e in form.non_field_errors %}
+          <p class="form-error">{{ e }}</p>
+        {% endfor %}
+      {% endif %}
+
       <button type="submit" id="btn-register" class="btn btn-primary btn-block btn-lg" style="margin-top:0.5rem;">
-        Crear mi cuenta
+        Crear cuenta
       </button>
     </form>
-    
-    <div class="auth-footer">
-      ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesion</a>
+
+    <div style="text-align:center; margin-top:1.25rem; color:var(--text-muted); font-size:0.88rem;">
+      Ya tienes cuenta?
+      <a href="{% url 'login' %}" style="color:var(--accent); font-weight:600;">Inicia sesion</a>
     </div>
   </div>
 </div>

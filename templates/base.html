@@ -7,7 +7,7 @@
   <title>{% block title %}AcademIA{% endblock %} | AcademIA</title>
   {% load static %}
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127891;</text></svg>">
 </head>
 <body>
   <nav class="navbar">
@@ -15,14 +15,16 @@
     <ul class="navbar-nav">
       {% if user.is_authenticated %}
         <li><a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a></li>
-        {% if user.is_teacher %}
-          <li><a href="{% url 'course_create' %}" class="nav-link">+ Crear Curso</a></li>
-          <li><span class="nav-badge badge-teacher">Profesor</span></li>
-        {% else %}
-          <li><a href="{% url 'course_join' %}" class="nav-link">Unirse</a></li>
-          <li><span class="nav-badge badge-student">Estudiante</span></li>
-        {% endif %}
-        <li><a href="{% url 'logout' %}" class="nav-link">Salir</a></li>
+        <li><a href="{% url 'course_create' %}" class="nav-link">+ Crear Curso</a></li>
+        <li>
+          <a href="{% url 'profile' %}" class="nav-link" style="display:flex; align-items:center; gap:0.4rem;">
+            <div style="width:1.8rem; height:1.8rem; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent-2)); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; color:#000;">
+              {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+            </div>
+            {{ user.first_name|default:user.username }}
+          </a>
+        </li>
+        <li><a href="{% url 'logout' %}" class="nav-link" style="color:var(--text-muted);">Salir</a></li>
       {% else %}
         <li><a href="{% url 'login' %}" class="nav-link">Iniciar Sesion</a></li>
         <li><a href="{% url 'register' %}" class="btn btn-primary btn-sm">Registrarse</a></li>

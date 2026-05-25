@@ -4,29 +4,32 @@ from .models import CustomUser
 
 
 class RegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True, label='Correo electronico')
-    first_name = forms.CharField(max_length=50, required=True, label='Nombre')
-    last_name = forms.CharField(max_length=50, required=True, label='Apellido')
-    role = forms.ChoiceField(
-        choices=CustomUser.ROLE_CHOICES,
-        label='Tipo de cuenta',
-        widget=forms.RadioSelect,
-    )
+    first_name = forms.CharField(
+        max_length=50, required=True,
+        widget=forms.TextInput(attrs={'placeholder': 'Tu nombre'}))
+    last_name = forms.CharField(
+        max_length=50, required=True,
+        widget=forms.TextInput(attrs={'placeholder': 'Tu apellido'}))
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={'placeholder': 'tu@email.com'}))
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'first_name', 'last_name', 'email', 'role', 'password1', 'password2')
+        fields = ['first_name', 'last_name', 'username', 'email', 'password1', 'password2']
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        user.role = self.cleaned_data['role']
-        if commit:
-            user.save()
-        return user
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if CustomUser.objects.filter(email=email).exists():
+            raise forms.ValidationError('Ya existe una cuenta con este correo.')
+        return email
 
 
-class CustomLoginForm(AuthenticationForm):
+class LoginForm(AuthenticationForm):
     pass
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'bio']

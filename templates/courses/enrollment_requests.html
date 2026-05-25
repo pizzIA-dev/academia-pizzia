@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Solicitudes — {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <div class="breadcrumb">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <span class="breadcrumb-sep">&#8250;</span>
+      <a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a>
+      <span class="breadcrumb-sep">&#8250;</span>
+      <span>Solicitudes</span>
+    </div>
+    <h1 class="page-title">Solicitudes de Inscripcion</h1>
+    <p class="page-subtitle">{{ pending.count }} pendiente{{ pending.count|pluralize:"s" }} &bull; {{ approved.count }} aprobada{{ approved.count|pluralize:"s" }} &bull; {{ rejected.count }} rechazada{{ rejected.count|pluralize:"s" }}</p>
+  </div>
+  <a href="{% url 'course_detail' course.pk %}" class="btn btn-secondary">&#8592; Volver</a>
+</div>
+
+{% if pending %}
+  <div class="section-header fade-in">
+    <span class="section-title" style="color:var(--warning);">&#9888; Pendientes ({{ pending.count }})</span>
+  </div>
+  <div class="fade-in" style="margin-bottom:2rem;">
+    {% for req in pending %}
+      <div class="card" style="margin-bottom:0.75rem; border-color:rgba(245,158,11,0.3);">
+        <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+          <div class="file-icon file-icon-other" style="font-size:1rem; width:2.5rem; height:2.5rem;">
+            {{ req.user.first_name.0|upper }}{{ req.user.last_name.0|upper }}
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:700;">{{ req.user.display_name }}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted);">@{{ req.user.username }} &bull; {{ req.requested_at|date:"d/m/Y H:i" }}</div>
+            {% if req.message %}
+              <div style="margin-top:0.4rem; font-size:0.85rem; color:var(--text-secondary); font-style:italic;">
+                "{{ req.message }}"
+              </div>
+            {% endif %}
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <a href="{% url 'enrollment_review' course.pk req.pk 'approve' %}"
+              class="btn btn-primary btn-sm" id="btn-approve-{{ req.pk }}">
+              &#10003; Aprobar
+            </a>
+            <a href="{% url 'enrollment_review' course.pk req.pk 'reject' %}"
+              class="btn btn-danger btn-sm" id="btn-reject-{{ req.pk }}">
+              &#10007; Rechazar
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state" style="padding:2rem; margin-bottom:2rem;">
+    <div class="empty-icon">&#128236;</div>
+    <p>No hay solicitudes pendientes</p>
+  </div>
+{% endif %}
+
+{% if approved %}
+  <div class="section-header fade-in">
+    <span class="section-title" style="color:var(--success);">&#10003; Aprobadas ({{ approved.count }})</span>
+  </div>
+  <div class="fade-in" style="margin-bottom:2rem;">
+    {% for req in approved %}
+      <div class="file-item" style="margin-bottom:0.5rem; opacity:0.75;">
+        <div class="file-icon file-icon-other" style="font-size:0.85rem; width:2rem; height:2rem;">
+          {{ req.user.first_name.0|upper }}{{ req.user.last_name.0|upper }}
+        </div>
+        <div style="flex:1;">
+          <div class="file-name">{{ req.user.display_name }}</div>
+          <div class="file-meta">Aprobado {{ req.reviewed_at|date:"d/m/Y" }} por {{ req.reviewed_by.display_name }}</div>
+        </div>
+        <span class="status-badge status-graded">&#10003; Aprobado</span>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if rejected %}
+  <div class="section-header fade-in">
+    <span class="section-title" style="color:var(--danger);">&#10007; Rechazadas ({{ rejected.count }})</span>
+  </div>
+  <div class="fade-in">
+    {% for req in rejected %}
+      <div class="file-item" style="margin-bottom:0.5rem; opacity:0.75;">
+        <div class="file-icon file-icon-other" style="font-size:0.85rem; width:2rem; height:2rem;">
+          {{ req.user.first_name.0|upper }}{{ req.user.last_name.0|upper }}
+        </div>
+        <div style="flex:1;">
+          <div class="file-name">{{ req.user.display_name }}</div>
+          <div class="file-meta">Rechazado {{ req.reviewed_at|date:"d/m/Y" }}</div>
+        </div>
+        <span class="status-badge status-pending">&#10007; Rechazado</span>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

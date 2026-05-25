@@ -2,16 +2,11 @@ import random
 import string
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 
 def generate_code():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-
-
-COVER_COLORS = [
-    '#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b',
-    '#ef4444', '#ec4899', '#06b6d4', '#84cc16',
-]
 
 
 class Course(models.Model):
@@ -39,16 +34,52 @@ class Course(models.Model):
     def __str__(self):
         return self.title
 
-    def is_teacher_or_moderator(self, user):
-        return user == self.teacher or self.moderators.filter(pk=user.pk).exists()
+    def get_pending_requests_count(self):
+        return self.enrollment_requests.filter(status='pending').count()
 
-    def is_member(self, user):
-        return (user == self.teacher or
-                self.students.filter(pk=user.pk).exists() or
-                self.moderators.filter(pk=user.pk).exists())
 
-    def get_member_count(self):
-        return self.students.count()
+class EnrollmentRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('approved', 'Aprobado'),
+        ('rejected', 'Rechazado'),
+    ]
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='enrollment_requests')
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE,
+        related_name='enrollment_requests')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    message = models.TextField(blank=True, verbose_name='Mensaje (opcional)')
+    requested_at = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='reviewed_enrollments')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Solicitud de inscripcion'
+        verbose_name_plural = 'Solicitudes de inscripcion'
+        unique_together = ['user', 'course']
+        ordering = ['-requested_at']
+
+    def __str__(self):
+        return f'{self.user} → {self.course} ({self.status})'
+
+    def approve(self, reviewed_by):
+        self.status = 'approved'
+        self.reviewed_by = reviewed_by
+        self.reviewed_at = timezone.now()
+        self.save()
+        self.course.students.add(self.user)
+
+    def reject(self, reviewed_by):
+        self.status = 'rejected'
+        self.reviewed_by = reviewed_by
+        self.reviewed_at = timezone.now()
+        self.save()
+        self.course.students.remove(self.user)
 
 
 def session_video_upload_path(instance, filename):
@@ -65,8 +96,7 @@ class Session(models.Model):
     video_file = models.FileField(
         upload_to=session_video_upload_path,
         blank=True, null=True,
-        verbose_name='Archivo de video (MP4, max 500MB)'
-    )
+        verbose_name='Archivo de video (MP4, max 500MB)')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -77,21 +107,14 @@ class Session(models.Model):
     def __str__(self):
         return f'Semana {self.week_number}: {self.title}'
 
-    @property
-    def has_video(self):
-        return bool(self.video_link or self.video_file)
-
 
 def material_upload_path(instance, filename):
     return f'academIA/courses/{instance.session.course.id}/sessions/{instance.session.id}/{filename}'
 
 
 FILE_TYPE_CHOICES = [
-    ('ppt', 'PowerPoint'),
-    ('excel', 'Excel'),
-    ('word', 'Word'),
-    ('pdf', 'PDF'),
-    ('other', 'Otro'),
+    ('ppt', 'PowerPoint'), ('excel', 'Excel'),
+    ('word', 'Word'), ('pdf', 'PDF'), ('other', 'Otro'),
 ]
 
 
@@ -104,34 +127,15 @@ class SessionMaterial(models.Model):
 
     class Meta:
         verbose_name = 'Material'
-        verbose_name_plural = 'Materiales'
         ordering = ['uploaded_at']
 
     def __str__(self):
         return self.name
 
-    @property
-    def file_icon(self):
-        icons = {'ppt': 'ppt', 'excel': 'xls', 'word': 'doc', 'pdf': 'pdf'}
-        return icons.get(self.file_type, 'file')
-
-    @property
-    def extension(self):
-        import os
-        if self.file and hasattr(self.file, 'name'):
-            return os.path.splitext(str(self.file.name))[1].lower()
-        return ''
-
 
 GRADE_TYPE_CHOICES = [
-    ('numeric', 'Numerica'),
-    ('letter', 'Letra (A-F)'),
-    ('custom', 'Personalizada'),
+    ('numeric', 'Numerica'), ('letter', 'Letra (A-F)'), ('custom', 'Personalizada'),
 ]
-
-
-def activity_upload_path(instance, filename):
-    return f'academIA/courses/{instance.session.course.id}/activities/{instance.id}/{filename}'
 
 
 class Activity(models.Model):
@@ -151,11 +155,10 @@ class Activity(models.Model):
 
     class Meta:
         verbose_name = 'Actividad'
-        verbose_name_plural = 'Actividades'
         ordering = ['due_date']
 
     def __str__(self):
-        return f'{self.title} - {self.session}'
+        return self.title
 
     @property
     def course(self):
@@ -182,18 +185,16 @@ class Submission(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='submissions')
     file = models.FileField(upload_to=submission_upload_path, verbose_name='Archivo de entrega')
-    comment = models.TextField(blank=True, verbose_name='Comentario')
+    comment = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
-    grade = models.CharField(max_length=50, blank=True, null=True, verbose_name='Nota')
-    teacher_comment = models.TextField(blank=True, verbose_name='Comentario del evaluador')
+    grade = models.CharField(max_length=50, blank=True, null=True)
+    teacher_comment = models.TextField(blank=True)
     graded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         null=True, blank=True, related_name='graded_submissions')
     graded_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Entrega'
-        verbose_name_plural = 'Entregas'
         unique_together = ['activity', 'student']
         ordering = ['-submitted_at']
 
