@@ -53,7 +53,7 @@
         <div class="form-group">
           <label class="form-label">Fecha limite *</label>
           <input type="datetime-local" name="due_date" class="form-control"
-            value="{{ form.due_date.value|default:'' }}" required>
+            value="{{ form.due_date.value|date:'Y-m-d\TH:i'|default:'' }}" required>
           {% for e in form.due_date.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
         </div>
         <div class="form-group">
@@ -69,7 +69,7 @@
       <div id="field-max-grade" class="form-group">
         <label class="form-label">Nota maxima</label>
         <input type="number" name="max_grade" class="form-control"
-          value="{{ form.max_grade.value|default:'100' }}" min="0" step="0.5">
+          value="{{ form.max_grade.value }}" min="0" step="0.5">
       </div>
 
       <div id="field-custom-grades" class="form-group" style="display:none;">

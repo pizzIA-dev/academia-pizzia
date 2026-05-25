@@ -40,6 +40,8 @@ urlpatterns = [
     # Activities CRUD
     path('sessions/<int:session_pk>/activities/create/', views.activity_create, name='activity_create'),
     path('activities/<int:pk>/', views.activity_detail, name='activity_detail'),
+    path('activities/<int:pk>/file/view/', views.activity_file_view, name='activity_file_view'),
+    path('activities/<int:pk>/file/download/', views.activity_file_download, name='activity_file_download'),
     path('activities/<int:pk>/edit/', views.activity_edit, name='activity_edit'),
     path('activities/<int:pk>/delete/', views.activity_delete, name='activity_delete'),
 

@@ -41,7 +41,7 @@
     <div class="card" style="margin-bottom:1rem;">
       <h3 class="section-title" style="margin-bottom:1rem;">&#128203; Instrucciones</h3>
       <div style="white-space:pre-wrap; color:var(--text-secondary); line-height:1.7; font-size:0.93rem;">
-        {{ activity.instructions }}
+        <div style="white-space:pre-wrap;text-indent:0;">{{ activity.instructions|linebreaksbr }}</div>
       </div>
     </div>
     {% if activity.instruction_file %}
@@ -50,11 +50,8 @@
         <div class="file-item">
           <div class="file-icon file-icon-pdf">DOC</div>
           <div class="file-name" style="flex:1;">Instrucciones - {{ activity.title }}</div>
-          <button onclick="openPreview('{{ activity.instruction_file.url }}', 'office', 'Instrucciones')"
-              class="btn btn-secondary btn-sm">&#128065; Ver</button>
-          <a href="{{ activity.instruction_file.url }}" target="_blank" class="btn btn-secondary btn-sm">
-            &#11015; Descargar
-          </a>
+          <a href="{% url 'activity_file_view' activity.pk %}" target="_blank" class="btn btn-secondary btn-sm">&#128065; Ver</a>
+          <a href="{% url 'activity_file_download' activity.pk %}" class="btn btn-secondary btn-sm">&#11015; Descargar</a>
         </div>
       </div>
     {% endif %}
