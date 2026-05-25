@@ -492,13 +492,40 @@ def remove_student(request, pk, student_pk):
 
 @login_required
 def download_material(request, pk):
-    """Force-download a material file, works with Cloudinary."""
+    """Proxy-download: fetches from Cloudinary and serves as attachment."""
+    import requests as req
+    from django.http import HttpResponse, StreamingHttpResponse
     material = get_object_or_404(SessionMaterial, pk=pk)
     course = material.session.course
     if not request.user.is_member_of(course):
         messages.error(request, 'No tienes acceso a este archivo.')
         return redirect('dashboard')
-    # Redirect to Cloudinary with fl_attachment flag
+
     url = material.file.url
-    download_url = url.replace('/upload/', '/upload/fl_attachment/')
-    return redirect(download_url)
+    try:
+        r = req.get(url, timeout=30, stream=True)
+        content_type = r.headers.get('Content-Type', 'application/octet-stream')
+        # Try to get extension from content type or URL
+        safe_name = material.name.replace('"', "'")
+        # Add extension if name has none
+        if '.' not in safe_name.split('/')[-1]:
+            ext_map = {
+                'application/pdf': '.pdf',
+                'application/vnd.ms-powerpoint': '.ppt',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+                'application/vnd.ms-excel': '.xls',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+                'application/msword': '.doc',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+                'video/mp4': '.mp4',
+                'video/quicktime': '.mov',
+            }
+            ext = ext_map.get(content_type.split(';')[0].strip(), '')
+            safe_name += ext
+
+        response = HttpResponse(r.content, content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{safe_name}"'
+        return response
+    except Exception as e:
+        messages.error(request, f'Error al descargar el archivo: {e}')
+        return redirect('session_detail', pk=material.session.pk)
