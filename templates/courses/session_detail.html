@@ -41,10 +41,12 @@
       </div>
       <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
         {% if session.video_file %}
-          <a href="{{ session.video_file.url }}" target="_blank" class="video-link-btn">&#9654; Ver (archivo)</a>
+          <button onclick="openPreview('{{ session.video_file.url }}', 'video', '{{ session.title }}')"
+            class="video-link-btn">&#9654; Previsualizar</button>
+          <a href="{{ session.video_file.url }}" target="_blank" class="video-link-btn">&#11015; Descargar</a>
         {% endif %}
         {% if session.video_link %}
-          <a href="{{ session.video_link }}" target="_blank" rel="noopener" class="video-link-btn">&#9654; Ver (enlace)</a>
+          <a href="{{ session.video_link }}" target="_blank" rel="noopener" class="video-link-btn">&#9654; Ver enlace</a>
         {% endif %}
       </div>
     </div>
@@ -68,18 +70,30 @@
           {% elif material.file_type == 'excel' %}XLS
           {% elif material.file_type == 'word' %}DOC
           {% elif material.file_type == 'pdf' %}PDF
+          {% elif material.file_type == 'video' %}VID
           {% else %}FILE{% endif %}
         </div>
         <div style="flex:1;">
           <div class="file-name">{{ material.name }}</div>
           <div class="file-meta">{{ material.uploaded_at|date:"d/m/Y" }}</div>
         </div>
+        <!-- Preview button based on type -->
+        {% if material.file_type == 'pdf' %}
+          <button onclick="openPreview('{{ material.file.url }}', 'pdf', '{{ material.name }}')"
+            class="btn btn-secondary btn-sm">&#128065; Ver</button>
+        {% elif material.file_type == 'ppt' or material.file_type == 'word' or material.file_type == 'excel' %}
+          <button onclick="openPreview('{{ material.file.url }}', 'office', '{{ material.name }}')"
+            class="btn btn-secondary btn-sm">&#128065; Ver</button>
+        {% elif material.file_type == 'video' %}
+          <button onclick="openPreview('{{ material.file.url }}', 'video', '{{ material.name }}')"
+            class="btn btn-secondary btn-sm">&#9654; Ver</button>
+        {% endif %}
         <a href="{{ material.file.url }}" target="_blank" class="btn btn-secondary btn-sm">&#11015; Descargar</a>
         {% if can_manage %}
-          <form method="POST" action="{% url 'material_delete' material.pk %}"
-            data-confirm="Eliminar '{{ material.name }}'?" style="display:inline;">
+          <form method="POST" action="{% url 'material_delete' material.pk %}" style="display:inline;">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-sm">&#128465;</button>
+            <button type="submit" class="btn btn-danger btn-sm"
+              onclick="return confirm('Eliminar este archivo?')">&#128465;</button>
           </form>
         {% endif %}
       </div>
@@ -132,4 +146,103 @@
     <p>No hay actividades en esta sesion</p>
   </div>
 {% endif %}
+
+<!-- ── PREVIEW MODAL ─────────────────────────────────────── -->
+<div id="preview-modal" style="
+  display:none; position:fixed; inset:0; z-index:1000;
+  background:rgba(0,0,0,0.85); backdrop-filter:blur(8px);
+  align-items:center; justify-content:center; flex-direction:column;">
+
+  <div style="width:92%; max-width:1000px; max-height:90vh; display:flex; flex-direction:column; gap:0;">
+    <!-- Header -->
+    <div style="display:flex; align-items:center; justify-content:space-between;
+      padding:0.75rem 1rem; background:rgba(255,255,255,0.06);
+      border-radius:12px 12px 0 0; border:1px solid rgba(255,255,255,0.1);">
+      <div id="preview-title" style="font-weight:700; font-size:0.95rem; color:#fff;
+        white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;"></div>
+      <div style="display:flex; gap:0.5rem;">
+        <a id="preview-download" href="#" target="_blank"
+          style="font-size:0.82rem; color:rgba(255,255,255,0.7); text-decoration:none;
+          padding:0.3rem 0.75rem; border:1px solid rgba(255,255,255,0.2); border-radius:6px;">
+          &#11015; Descargar
+        </a>
+        <button onclick="closePreview()" style="
+          background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4);
+          color:#ef4444; border-radius:6px; padding:0.3rem 0.75rem;
+          cursor:pointer; font-size:0.9rem;">
+          &#10005; Cerrar
+        </button>
+      </div>
+    </div>
+    <!-- Content -->
+    <div id="preview-body" style="
+      flex:1; background:#000; border-radius:0 0 12px 12px; overflow:hidden;
+      border:1px solid rgba(255,255,255,0.1); border-top:none;
+      min-height:70vh; display:flex; align-items:center; justify-content:center;">
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openPreview(url, type, name) {
+  const modal = document.getElementById('preview-modal');
+  const body = document.getElementById('preview-body');
+  const title = document.getElementById('preview-title');
+  const dl = document.getElementById('preview-download');
+
+  title.textContent = name;
+  dl.href = url;
+  body.innerHTML = '';
+
+  if (type === 'pdf') {
+    body.innerHTML = `<iframe src="${url}" style="width:100%;height:75vh;border:none;"></iframe>`;
+  } else if (type === 'video') {
+    body.innerHTML = `
+      <video controls style="max-width:100%;max-height:75vh;border-radius:0 0 12px 12px;">
+        <source src="${url}">
+        Tu navegador no soporta este formato de video.
+      </video>`;
+  } else if (type === 'office') {
+    // Microsoft Office Online Viewer
+    const encoded = encodeURIComponent(url);
+    body.innerHTML = `<iframe
+      src="https://view.officeapps.live.com/op/embed.aspx?src=${encoded}"
+      style="width:100%;height:75vh;border:none;"
+      frameborder="0">
+    </iframe>`;
+  } else {
+    body.innerHTML = `
+      <div style="text-align:center; color:rgba(255,255,255,0.6); padding:2rem;">
+        <div style="font-size:3rem; margin-bottom:1rem;">&#128193;</div>
+        <p>Este tipo de archivo no se puede previsualizar.</p>
+        <a href="${url}" target="_blank"
+          style="color:var(--accent); margin-top:1rem; display:inline-block;">
+          &#11015; Descargar archivo
+        </a>
+      </div>`;
+  }
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closePreview() {
+  const modal = document.getElementById('preview-modal');
+  document.getElementById('preview-body').innerHTML = '';
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// Close on backdrop click
+document.getElementById('preview-modal').addEventListener('click', function(e) {
+  if (e.target === this) closePreview();
+});
+
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closePreview();
+});
+</script>
 {% endblock %}

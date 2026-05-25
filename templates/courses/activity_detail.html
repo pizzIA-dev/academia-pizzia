@@ -50,6 +50,8 @@
         <div class="file-item">
           <div class="file-icon file-icon-pdf">DOC</div>
           <div class="file-name" style="flex:1;">Instrucciones - {{ activity.title }}</div>
+          <button onclick="openPreview('{{ activity.instruction_file.url }}', 'office', 'Instrucciones')"
+              class="btn btn-secondary btn-sm">&#128065; Ver</button>
           <a href="{{ activity.instruction_file.url }}" target="_blank" class="btn btn-secondary btn-sm">
             &#11015; Descargar
           </a>
