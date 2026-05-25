@@ -835,3 +835,60 @@ def activity_file_download(request, pk):
         return resp
     except Exception as e:
         return HttpResponse(f"Error al descargar: {e}", status=502)
+
+
+@login_required
+def course_catalog(request):
+    """Browse all active courses — request enrollment for non-members."""
+    from .models import EnrollmentRequest
+    user = request.user
+    all_courses = Course.objects.filter(is_active=True).order_by('-created_at') \
+        .select_related('teacher').prefetch_related('students')
+
+    # Map course pk → enrollment request status for this user
+    user_requests = {
+        er.course_id: er.status
+        for er in EnrollmentRequest.objects.filter(user=user)
+    }
+
+    course_data = []
+    for c in all_courses:
+        is_member = user.is_member_of(c)
+        req_status = user_requests.get(c.pk)
+        course_data.append({
+            'course': c,
+            'is_member': is_member,
+            'req_status': req_status,
+            'student_count': c.students.count(),
+        })
+
+    return render(request, 'courses/course_catalog.html', {
+        'course_data': course_data,
+    })
+
+
+@login_required
+def request_enrollment(request, pk):
+    """Create an enrollment request directly (no code required)."""
+    from .models import EnrollmentRequest
+    course = get_object_or_404(Course, pk=pk, is_active=True)
+    user = request.user
+
+    if user.is_member_of(course):
+        messages.info(request, f'Ya eres miembro de "{course.title}".')
+        return redirect('course_detail', pk=pk)
+
+    existing = EnrollmentRequest.objects.filter(user=user, course=course).first()
+    if existing:
+        if existing.status == 'pending':
+            messages.info(request, 'Ya tienes una solicitud pendiente.')
+        elif existing.status == 'rejected':
+            messages.error(request, 'Tu solicitud fue rechazada.')
+        else:
+            messages.info(request, 'Ya eres miembro.')
+    else:
+        EnrollmentRequest.objects.create(user=user, course=course)
+        messages.success(request, f'Solicitud enviada para "{course.title}". El profesor la revisará pronto.')
+
+    next_url = request.POST.get('next') or request.GET.get('next') or 'course_catalog'
+    return redirect(next_url)

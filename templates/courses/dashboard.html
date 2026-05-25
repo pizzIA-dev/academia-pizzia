@@ -7,7 +7,8 @@
     <h1 class="page-title">Hola, {{ request.user.first_name|default:request.user.username }} &#128075;</h1>
     <p class="page-subtitle">Tus cursos como profesor, moderador y estudiante</p>
   </div>
-  <a href="{% url 'course_create' %}" id="btn-create-course" class="btn btn-primary">+ Crear Curso</a>
+  <a href="{% url 'course_catalog' %}" class="btn btn-secondary">🔍 Explorar Cursos</a>
+    <a href="{% url 'course_create' %}" id="btn-create-course" class="btn btn-primary">+ Crear Curso</a>
 </div>
 
 <!-- PROFESOR -->

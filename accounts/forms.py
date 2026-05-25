@@ -26,7 +26,11 @@ class RegisterForm(UserCreationForm):
 
 
 class LoginForm(AuthenticationForm):
-    pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].label = 'Usuario o correo'
+        self.fields['username'].widget.attrs['placeholder'] = 'Usuario o correo electrónico'
+
 
 
 class ProfileForm(forms.ModelForm):
