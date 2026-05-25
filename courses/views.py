@@ -493,44 +493,48 @@ def remove_student(request, pk, student_pk):
 
 
 
-def _build_cloudinary_urls(url):
-    """Build ordered list of URL candidates to try for fetching from Cloudinary."""
-    from urllib.parse import urlparse, urlunparse, quote
-    candidates = []
-    # Prefer /raw/upload/ — serves original bytes regardless of resource_type
-    if '/raw/upload/' in url:
-        candidates.append(url)
-    else:
-        raw = url.replace('/image/upload/', '/raw/upload/', 1)
-        candidates.append(raw)
-        candidates.append(url)  # original as last resort
-    return candidates
 
+def _cloudinary_get_bytes(file_url):
+    """
+    Download file bytes from Cloudinary using the authenticated API
+    (generate_archive endpoint). This bypasses ACL/CDN restrictions that
+    block direct URL access (X-Cld-Error: deny or ACL failure).
 
-def _fetch_cloudinary(url, timeout=25):
+    Returns raw file bytes, or raises an exception.
     """
-    Fetch a Cloudinary file, handling non-ASCII filenames via URL encoding.
-    Returns (content_bytes, content_type) or raises.
-    """
+    import cloudinary.utils
     import requests as req
-    from urllib.parse import urlparse, urlunparse, quote
+    import zipfile, io
+    from urllib.parse import unquote
 
-    parsed = urlparse(url)
-    # Encode non-ASCII characters in path only (leave slashes intact)
-    safe_path = quote(parsed.path, safe='/:@!$&\'()*+,;=-.~%')
-    encoded_url = urlunparse(parsed._replace(path=safe_path))
+    # Extract resource_type and public_id from Cloudinary URL
+    m = re.search(r'/(raw|image|video)/upload/(?:v\d+/)?(.+)', file_url)
+    if not m:
+        raise ValueError(f"Cannot parse Cloudinary URL: {file_url[:80]}")
 
-    r = req.get(
-        encoded_url,
-        timeout=timeout,
-        allow_redirects=True,
-        headers={
-            'User-Agent': 'Mozilla/5.0 (compatible; AcademIA/1.0)',
-            'Accept': '*/*',
-        }
+    resource_type = m.group(1)
+    public_id = unquote(m.group(2))
+
+    # Remove extension from public_id for raw files (Cloudinary stores without ext)
+    # Actually for RawMediaCloudinaryStorage it includes the extension in public_id
+    # Try both with and without extension
+    archive_url = cloudinary.utils.download_archive_url(
+        public_ids=[public_id],
+        resource_type=resource_type,
+        mode='download',
     )
+
+    r = req.get(archive_url, timeout=30, headers={'User-Agent': 'AcademIA/1.0'})
     r.raise_for_status()
-    return r.content, r.headers.get('Content-Type', 'application/octet-stream')
+
+    # Response is a ZIP archive containing the file
+    zf = zipfile.ZipFile(io.BytesIO(r.content))
+    names = zf.namelist()
+    if not names:
+        raise ValueError("Empty archive returned from Cloudinary")
+
+    return zf.read(names[0])
+
 
 
 MATERIAL_CONTENT_TYPES = {
@@ -551,9 +555,8 @@ MATERIAL_EXTENSIONS = {
 @login_required
 def view_material(request, pk):
     """
-    Inline proxy: fetches file from Cloudinary and serves with correct
-    Content-Type so the browser can render it (PDF in iframe, etc.).
-    Never redirects to Cloudinary — that causes CORS/CSP failures.
+    Inline proxy: downloads file from Cloudinary via authenticated API
+    (bypasses CDN ACL restrictions) and serves with correct Content-Type.
     """
     from django.http import HttpResponse
     material = get_object_or_404(SessionMaterial, pk=pk)
@@ -561,42 +564,35 @@ def view_material(request, pk):
         return redirect('dashboard')
 
     ct = MATERIAL_CONTENT_TYPES.get(material.file_type, 'application/octet-stream')
-    last_error = 'Unknown error'
-
-    for candidate_url in _build_cloudinary_urls(material.file.url):
-        try:
-            content, _ = _fetch_cloudinary(candidate_url)
-            if content:
-                response = HttpResponse(content, content_type=ct)
-                response['Content-Disposition'] = f'inline; filename="{material.name}"'
-                response['X-Frame-Options'] = 'SAMEORIGIN'
-                response['Cache-Control'] = 'private, max-age=3600'
-                return response
-        except Exception as e:
-            last_error = str(e)
-            continue
-
-    # All fetches failed — show error inside iframe (do NOT redirect)
-    html = f"""<!DOCTYPE html><html>
+    try:
+        content = _cloudinary_get_bytes(material.file.url)
+        response = HttpResponse(content, content_type=ct)
+        response['Content-Disposition'] = f'inline; filename="{material.name}"'
+        response['X-Frame-Options'] = 'SAMEORIGIN'
+        response['Cache-Control'] = 'private, max-age=3600'
+        return response
+    except Exception as e:
+        error_msg = str(e)[:120]
+        html = f"""<!DOCTYPE html><html>
 <body style="background:#111;color:#ccc;font-family:sans-serif;
              display:flex;align-items:center;justify-content:center;
              height:100vh;flex-direction:column;gap:1rem;margin:0;">
-  <p style="font-size:1rem;">No se pudo cargar el archivo.</p>
-  <p style="font-size:0.75rem;opacity:0.5;">{last_error[:120]}</p>
-  <a href="{material.file.url}" target="_blank"
+  <p style="font-size:1rem;">No se pudo cargar el archivo en linea.</p>
+  <p style="font-size:0.75rem;opacity:0.5;">{error_msg}</p>
+  <a href="/materials/{pk}/download/"
      style="background:#0ea5e9;color:#fff;padding:.6rem 1.4rem;
             border-radius:8px;text-decoration:none;font-weight:600;">
-    Abrir en nueva pestana
+    Descargar archivo
   </a>
 </body></html>"""
-    return HttpResponse(html, content_type='text/html; charset=utf-8')
+        return HttpResponse(html, content_type='text/html; charset=utf-8')
 
 
 @login_required
 def download_material(request, pk):
     """
-    Forced download: proxy for docs, direct CDN redirect for video.
-    Handles non-ASCII filenames and Cloudinary image-type URLs.
+    Forced download: uses Cloudinary authenticated API (bypasses ACL).
+    Videos redirect to CDN directly (too large to proxy).
     """
     from django.http import HttpResponse
     material = get_object_or_404(SessionMaterial, pk=pk)
@@ -604,7 +600,6 @@ def download_material(request, pk):
         messages.error(request, 'No tienes acceso a este archivo.')
         return redirect('dashboard')
 
-    # Videos: redirect to Cloudinary CDN (too large to proxy)
     if material.file_type in ('video', 'audio'):
         return redirect(material.file.url)
 
@@ -614,21 +609,14 @@ def download_material(request, pk):
     if ext and not safe_name.lower().endswith(ext):
         safe_name += ext
 
-    last_error = 'Unknown'
-    for candidate_url in _build_cloudinary_urls(material.file.url):
-        try:
-            content, _ = _fetch_cloudinary(candidate_url)
-            if content:
-                response = HttpResponse(content, content_type=ct)
-                response['Content-Disposition'] = f'attachment; filename="{safe_name}"'
-                return response
-        except Exception as e:
-            last_error = str(e)
-            continue
-
-    # Fallback: let browser handle it
-    messages.error(request, f'Error al descargar: {last_error}')
-    return redirect(material.file.url)
+    try:
+        content = _cloudinary_get_bytes(material.file.url)
+        response = HttpResponse(content, content_type=ct)
+        response['Content-Disposition'] = f'attachment; filename="{safe_name}"'
+        return response
+    except Exception as e:
+        messages.error(request, f'Error al descargar: {str(e)[:100]}')
+        return redirect('session_detail', pk=material.session.pk)
 
 
 
