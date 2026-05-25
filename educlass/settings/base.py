@@ -5,7 +5,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-production-please-now')
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = str(config('DEBUG', default='False')).strip().lower() in ('true', '1', 'yes', 'on')
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
