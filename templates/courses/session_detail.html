@@ -62,40 +62,45 @@
 </div>
 
 {% if materials %}
-  <div class="fade-in" style="margin-bottom:2rem;">
+  <div class="material-grid fade-in" style="margin-bottom:2rem;">
     {% for material in materials %}
-      <div class="file-item">
-        <div class="file-icon file-icon-{{ material.file_type }}">
-          {% if material.file_type == 'ppt' %}PPT
-          {% elif material.file_type == 'excel' %}XLS
-          {% elif material.file_type == 'word' %}DOC
-          {% elif material.file_type == 'pdf' %}PDF
-          {% elif material.file_type == 'video' %}VID
-          {% else %}FILE{% endif %}
+      <div class="material-card" onclick="handleCardClick('{{ material.file.url }}', '{{ material.file_type }}', '{{ material.name|escapejs }}')">
+        <!-- Thumbnail / Icon area -->
+        <div class="material-thumb material-thumb-{{ material.file_type }}">
+          {% if material.file_type == 'ppt' %}
+            <svg viewBox="0 0 48 48" width="52" height="52"><rect x="6" y="6" width="36" height="36" rx="6" fill="rgba(255,255,255,0.15)"/><text x="24" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="white" font-family="sans-serif">PPT</text></svg>
+          {% elif material.file_type == 'excel' %}
+            <svg viewBox="0 0 48 48" width="52" height="52"><rect x="6" y="6" width="36" height="36" rx="6" fill="rgba(255,255,255,0.15)"/><text x="24" y="30" text-anchor="middle" font-size="15" font-weight="bold" fill="white" font-family="sans-serif">XLS</text></svg>
+          {% elif material.file_type == 'word' %}
+            <svg viewBox="0 0 48 48" width="52" height="52"><rect x="6" y="6" width="36" height="36" rx="6" fill="rgba(255,255,255,0.15)"/><text x="24" y="30" text-anchor="middle" font-size="14" font-weight="bold" fill="white" font-family="sans-serif">DOC</text></svg>
+          {% elif material.file_type == 'pdf' %}
+            <svg viewBox="0 0 48 48" width="52" height="52"><rect x="6" y="6" width="36" height="36" rx="6" fill="rgba(255,255,255,0.15)"/><text x="24" y="30" text-anchor="middle" font-size="14" font-weight="bold" fill="white" font-family="sans-serif">PDF</text></svg>
+          {% elif material.file_type == 'video' %}
+            <div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">&#9654;</div>
+          {% else %}
+            <div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">&#128193;</div>
+          {% endif %}
+          <!-- Hover overlay -->
+          <div class="material-thumb-overlay">
+            {% if material.file_type == 'video' %}&#9654;{% else %}&#128065;{% endif %}
+          </div>
         </div>
-        <div style="flex:1;">
-          <div class="file-name">{{ material.name }}</div>
-          <div class="file-meta">{{ material.uploaded_at|date:"d/m/Y" }}</div>
+        <!-- File info -->
+        <div class="material-info">
+          <div class="material-name" title="{{ material.name }}">{{ material.name }}</div>
+          <div class="material-meta">{{ material.uploaded_at|date:"d/m/Y" }}</div>
         </div>
-        <!-- Preview button based on type -->
-        {% if material.file_type == 'pdf' %}
-          <button onclick="openPreview('{{ material.file.url }}', 'pdf', '{{ material.name }}')"
-            class="btn btn-secondary btn-sm">&#128065; Ver</button>
-        {% elif material.file_type == 'ppt' or material.file_type == 'word' or material.file_type == 'excel' %}
-          <button onclick="openPreview('{{ material.file.url }}', 'office', '{{ material.name }}')"
-            class="btn btn-secondary btn-sm">&#128065; Ver</button>
-        {% elif material.file_type == 'video' %}
-          <button onclick="openPreview('{{ material.file.url }}', 'video', '{{ material.name }}')"
-            class="btn btn-secondary btn-sm">&#9654; Ver</button>
-        {% endif %}
-        <a href="{{ material.file.url }}" target="_blank" class="btn btn-secondary btn-sm">&#11015; Descargar</a>
-        {% if can_manage %}
-          <form method="POST" action="{% url 'material_delete' material.pk %}" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-sm"
-              onclick="return confirm('Eliminar este archivo?')">&#128465;</button>
-          </form>
-        {% endif %}
+        <!-- Actions (stop propagation so card click doesn't fire) -->
+        <div class="material-actions" onclick="event.stopPropagation()">
+          <a href="{{ material.file.url }}" target="_blank" class="mat-action-btn" title="Descargar">&#11015;</a>
+          {% if can_manage %}
+            <form method="POST" action="{% url 'material_delete' material.pk %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="mat-action-btn mat-action-danger"
+                onclick="return confirm('Eliminar este archivo?')" title="Eliminar">&#128465;</button>
+            </form>
+          {% endif %}
+        </div>
       </div>
     {% endfor %}
   </div>
@@ -186,6 +191,21 @@
 
 {% block extra_js %}
 <script>
+function handleCardClick(url, type, name) {
+  // Types that can be previewed
+  const previewable = ['pdf', 'video', 'ppt', 'word', 'excel'];
+  const officeTypes = ['ppt', 'word', 'excel'];
+  if (type === 'pdf') {
+    openPreview(url, 'pdf', name);
+  } else if (type === 'video') {
+    openPreview(url, 'video', name);
+  } else if (officeTypes.includes(type)) {
+    openPreview(url, 'office', name);
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
 function openPreview(url, type, name) {
   const modal = document.getElementById('preview-modal');
   const body = document.getElementById('preview-body');
