@@ -80,7 +80,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # ─── Cloudinary (Documentos, imagenes, PDFs) ───
 MEDIA_URL = '/media/'
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# DEFAULT_FILE_STORAGE removed — production.py uses STORAGES dict (Django 4.2+)
 
 CLOUDINARY_STORAGE = {
     'CLOUDINARY_URL': config('CLOUDINARY_URL', default='cloudinary://placeholder:placeholder@placeholder'),
