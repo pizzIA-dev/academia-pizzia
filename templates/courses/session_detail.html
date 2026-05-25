@@ -193,16 +193,25 @@
 {% block extra_js %}
 <script>
 function handleCardClick(url, type, name, viewUrl, dlUrl) {
+  // Extension per file type (matches MATERIAL_EXTENSIONS in views.py)
+  const extMap = {pdf: '.pdf', ppt: '.pptx', word: '.docx', excel: '.xlsx', zip: '.zip', audio: '.mp3'};
+  const ext = extMap[type] || '';
+
   if (type === 'video') {
     openPreview(url, 'video', name, dlUrl);
   } else if (type === 'pdf') {
-    // Use /view/ endpoint — Django serves PDF with correct Content-Type inline
-    // Append filename to viewUrl so Chrome's native PDF download uses correct name
-    const pdfViewUrl = viewUrl ? (viewUrl + encodeURIComponent(name) + '.pdf') : url;
-    openPreview(pdfViewUrl, 'pdf', name, dlUrl);
+    // Append filename.pdf so Chrome native download button uses correct name
+    const namedViewUrl = viewUrl ? (viewUrl + encodeURIComponent(name + ext)) : url;
+    openPreview(namedViewUrl, 'pdf', name, dlUrl);
+  } else if (type === 'audio') {
+    openPreview(url, 'audio', name, dlUrl);
   } else {
-    // Word/Excel/PPT: open directly in new tab
-    window.open(url, '_blank');
+    // Word / Excel / PPT / ZIP -> trigger Django download proxy (not raw Cloudinary)
+    if (dlUrl) {
+      window.location.href = dlUrl;
+    } else {
+      window.open(url, '_blank');
+    }
   }
 }
 
