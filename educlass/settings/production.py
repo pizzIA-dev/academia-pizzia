@@ -28,6 +28,17 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 # ── Cloudinary ────────────────────────────────────────────────
 CLOUDINARY_URL = config('CLOUDINARY_URL')
 
+# Force raw resource_type so PDFs/docs are stored correctly (not as images)
+# Django 4.2+ style
+STORAGES = {
+    'default': {
+        'BACKEND': 'cloudinary_storage.storage.RawMediaCloudinaryStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
+
 # ── Security ──────────────────────────────────────────────────
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = False
@@ -35,7 +46,7 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
+X_FRAME_OPTIONS = 'SAMEORIGIN'  # DENY would block our own PDF iframe preview
 
 # ── Logging ───────────────────────────────────────────────────
 LOGGING = {
