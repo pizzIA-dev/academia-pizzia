@@ -57,9 +57,9 @@
           &#10003; Guardar Curso
         </button>
         {% if course %}
-          <a href="{% url 'course_detail' course.pk %}" class="btn btn-secondary btn-lg">Cancelar</a>
+          <a href="#" onclick="history.back();return false;" class="btn btn-secondary btn-lg">Cancelar</a>
         {% else %}
-          <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-lg">Cancelar</a>
+          <a href="#" onclick="history.back();return false;" class="btn btn-secondary btn-lg">Cancelar</a>
         {% endif %}
       </div>
     </form>
