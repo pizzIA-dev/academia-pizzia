@@ -492,9 +492,13 @@ def remove_student(request, pk, student_pk):
 
 @login_required
 def download_material(request, pk):
-    """Proxy-download: fetches from Cloudinary and serves as attachment."""
+    """
+    Smart download:
+    - Videos/audio → redirect directly to Cloudinary (bypass memory limits).
+    - Docs/PDFs    → proxy through Django to force Content-Disposition attachment.
+    """
     import requests as req
-    from django.http import HttpResponse, StreamingHttpResponse
+    from django.http import HttpResponse
     material = get_object_or_404(SessionMaterial, pk=pk)
     course = material.session.course
     if not request.user.is_member_of(course):
@@ -502,12 +506,18 @@ def download_material(request, pk):
         return redirect('dashboard')
 
     url = material.file.url
+
+    # Videos and audio: redirect straight to Cloudinary CDN.
+    # Cloudinary handles range requests and large file streaming natively.
+    VIDEO_TYPES = ('video', 'audio')
+    if material.file_type in VIDEO_TYPES:
+        return redirect(url)
+
+    # Small files (docs, PDFs, etc.): proxy through Django to force download.
     try:
-        r = req.get(url, timeout=30, stream=True)
+        r = req.get(url, timeout=30)
         content_type = r.headers.get('Content-Type', 'application/octet-stream')
-        # Try to get extension from content type or URL
         safe_name = material.name.replace('"', "'")
-        # Add extension if name has none
         if '.' not in safe_name.split('/')[-1]:
             ext_map = {
                 'application/pdf': '.pdf',
@@ -517,15 +527,14 @@ def download_material(request, pk):
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
                 'application/msword': '.doc',
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
-                'video/mp4': '.mp4',
-                'video/quicktime': '.mov',
+                'text/plain': '.txt',
+                'application/zip': '.zip',
             }
             ext = ext_map.get(content_type.split(';')[0].strip(), '')
             safe_name += ext
-
         response = HttpResponse(r.content, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{safe_name}"'
         return response
     except Exception as e:
-        messages.error(request, f'Error al descargar el archivo: {e}')
+        messages.error(request, f'Error al descargar: {e}')
         return redirect('session_detail', pk=material.session.pk)
