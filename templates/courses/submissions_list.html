@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Entregas - {{ activity.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <div class="breadcrumb">
+      <a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="{% url 'session_detail' activity.session.pk %}">{{ activity.session.title }}</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>{{ activity.title }}</span>
+    </div>
+    <h1 class="page-title">Entregas</h1>
+    <p class="page-subtitle">{{ activity.title }} · {{ submissions.count }} estudiantes han entregado</p>
+  </div>
+  <a href="{% url 'activity_detail' activity.pk %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;" class="fade-in">
+  <div class="stat-card">
+    <div class="stat-value">{{ submissions.count }}</div>
+    <div class="stat-label">Entregas</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ graded.count }}</div>
+    <div class="stat-label">Calificadas</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ pending.count }}</div>
+    <div class="stat-label">Pendientes</div>
+  </div>
+</div>
+
+{% if submissions %}
+  <div class="table-container fade-in">
+    <table>
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Fecha de entrega</th>
+          <th>Archivo</th>
+          <th>Estado</th>
+          <th>Nota</th>
+          <th>Accion</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sub in submissions %}
+          <tr>
+            <td>
+              <div style="font-weight:600;">{{ sub.student.get_full_name|default:sub.student.username }}</div>
+              <div style="font-size:0.78rem; color:var(--text-muted);">@{{ sub.student.username }}</div>
+            </td>
+            <td style="color:var(--text-secondary); font-size:0.85rem;">{{ sub.submitted_at|date:"d/m/Y H:i" }}</td>
+            <td>
+              <a href="{{ sub.file.url }}" target="_blank" class="btn btn-secondary btn-sm">📎 Ver</a>
+            </td>
+            <td>
+              {% if sub.is_graded %}
+                <span class="status-badge status-graded">✓ Calificado</span>
+              {% else %}
+                <span class="status-badge status-pending">Pendiente</span>
+              {% endif %}
+            </td>
+            <td style="font-weight:700; color:var(--accent-3);">
+              {{ sub.grade|default:'—' }}
+            </td>
+            <td>
+              <a href="{% url 'grade_submission' sub.pk %}" class="btn btn-primary btn-sm">
+                {% if sub.is_graded %}✏ Editar{% else %}★ Calificar{% endif %}
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📭</div>
+    <h3>Ningún estudiante ha entregado todavia</h3>
+  </div>
+{% endif %}
+{% endblock %}

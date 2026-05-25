@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Mi Perfil{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mi Perfil</h1>
+    <p class="page-subtitle">{{ user.get_full_name }} · {{ user.email }}</p>
+  </div>
+</div>
+<div class="card" style="max-width:500px;">
+  <p><strong>Usuario:</strong> {{ user.username }}</p>
+  <p style="margin-top:0.5rem;"><strong>Rol:</strong>
+    <span class="nav-badge {% if user.is_teacher %}badge-teacher{% else %}badge-student{% endif %}" style="margin-left:0.5rem;">
+      {{ user.get_role_display }}
+    </span>
+  </p>
+  <p style="margin-top:0.5rem;"><strong>Correo:</strong> {{ user.email }}</p>
+  <p style="margin-top:0.5rem;"><strong>Miembro desde:</strong> {{ user.date_joined|date:"d/m/Y" }}</p>
+</div>
+{% endblock %}

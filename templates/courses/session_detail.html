@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}{{ session.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <div class="breadcrumb">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <span class="breadcrumb-sep">&#8250;</span>
+      <a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a>
+      <span class="breadcrumb-sep">&#8250;</span>
+      <span>Semana {{ session.week_number }}</span>
+    </div>
+    <div style="font-size:0.82rem; color:var(--accent); font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">Semana {{ session.week_number }}</div>
+    <h1 class="page-title">{{ session.title }}</h1>
+    {% if session.description %}
+      <p class="page-subtitle">{{ session.description }}</p>
+    {% endif %}
+    <div style="font-size:0.83rem; color:var(--text-muted);">&#128197; {{ session.date|date:"l d/m/Y" }}</div>
+  </div>
+  {% if can_manage %}
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <a href="{% url 'material_upload' session.pk %}" class="btn btn-secondary btn-sm">&#128206; Subir Material</a>
+      <a href="{% url 'activity_create' session.pk %}" class="btn btn-primary btn-sm">+ Actividad</a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Video Section -->
+{% if session.video_file or session.video_link %}
+  <div class="card fade-in" style="margin-bottom:1.5rem; border-color:rgba(255,0,0,0.2);">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem;">
+      <div>
+        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.3rem;">Grabacion de clase</div>
+        <div style="font-size:0.95rem; font-weight:600;">&#127909; {{ session.title }}</div>
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        {% if session.video_file %}
+          <a href="{{ session.video_file.url }}" target="_blank" class="video-link-btn">
+            &#9654; Ver Grabacion (archivo)
+          </a>
+        {% endif %}
+        {% if session.video_link %}
+          <a href="{{ session.video_link }}" target="_blank" rel="noopener" class="video-link-btn">
+            &#9654; Ver Grabacion (enlace)
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Materials -->
+<div class="section-header fade-in">
+  <span class="section-title">&#128206; Material de Clase</span>
+  {% if can_manage %}
+    <a href="{% url 'material_upload' session.pk %}" class="btn btn-secondary btn-sm">Subir Archivo</a>
+  {% endif %}
+</div>
+
+{% if materials %}
+  <div class="fade-in" style="margin-bottom:2rem;">
+    {% for material in materials %}
+      <div class="file-item">
+        <div class="file-icon file-icon-{{ material.file_type }}">
+          {% if material.file_type == 'ppt' %}PPT
+          {% elif material.file_type == 'excel' %}XLS
+          {% elif material.file_type == 'word' %}DOC
+          {% elif material.file_type == 'pdf' %}PDF
+          {% else %}FILE{% endif %}
+        </div>
+        <div style="flex:1;">
+          <div class="file-name">{{ material.name }}</div>
+          <div class="file-meta">{{ material.uploaded_at|date:"d/m/Y" }}</div>
+        </div>
+        <a href="{{ material.file.url }}" target="_blank" class="btn btn-secondary btn-sm">Descargar</a>
+        {% if can_manage %}
+          <form method="POST" action="{% url 'material_delete' material.pk %}" data-confirm="Eliminar '{{ material.name }}'?" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm">&#10005;</button>
+          </form>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state" style="padding:2rem; margin-bottom:1.5rem;">
+    <div class="empty-icon" style="font-size:2rem;">&#128194;</div>
+    <p>No hay materiales todavia</p>
+  </div>
+{% endif %}
+
+<!-- Activities -->
+<div class="section-header fade-in">
+  <span class="section-title">&#128221; Actividades</span>
+  {% if can_manage %}
+    <a href="{% url 'activity_create' session.pk %}" class="btn btn-primary btn-sm">+ Actividad</a>
+  {% endif %}
+</div>
+
+{% if activities %}
+  <div class="fade-in">
+    {% for activity in activities %}
+      <div class="activity-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.5rem;">
+          <div>
+            <h4 style="font-weight:700; margin-bottom:0.3rem;">
+              <a href="{% url 'activity_detail' activity.pk %}" style="color:inherit; text-decoration:none;">{{ activity.title }}</a>
+            </h4>
+            <div class="activity-due">&#9200; Entrega: {{ activity.due_date|date:"d/m/Y H:i" }}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+            {% if can_manage %}
+              <span style="font-size:0.82rem; color:var(--text-muted);">{{ activity.submission_count }} entregas</span>
+              <a href="{% url 'submissions_list' activity.pk %}" class="btn btn-secondary btn-sm">Ver Entregas</a>
+            {% endif %}
+            <a href="{% url 'activity_detail' activity.pk %}" class="btn btn-primary btn-sm">Ver &#8594;</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state" style="padding:2rem;">
+    <div class="empty-icon" style="font-size:2rem;">&#128221;</div>
+    <p>No hay actividades en esta sesion</p>
+  </div>
+{% endif %}
+{% endblock %}

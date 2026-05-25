@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Calificar Entrega{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <div class="breadcrumb">
+      <a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="{% url 'submissions_list' activity.pk %}">Entregas</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>Calificar</span>
+    </div>
+    <h1 class="page-title">Calificar Entrega</h1>
+    <p class="page-subtitle">{{ submission.student.get_full_name|default:submission.student.username }} · {{ activity.title }}</p>
+  </div>
+  <a href="{% url 'submissions_list' activity.pk %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; flex-wrap:wrap;" class="fade-in">
+  <!-- Submission Info -->
+  <div>
+    <div class="card">
+      <h3 class="section-title" style="margin-bottom:1rem;">📎 Archivo Entregado</h3>
+      <div class="file-item">
+        <div class="file-icon file-icon-other">📄</div>
+        <div style="flex:1;">
+          <div class="file-name">Entrega de {{ submission.student.first_name }}</div>
+          <div class="file-meta">{{ submission.submitted_at|date:"d/m/Y H:i" }}</div>
+        </div>
+        <a href="{{ submission.file.url }}" target="_blank" class="btn btn-primary btn-sm">Abrir</a>
+      </div>
+      {% if submission.comment %}
+        <div style="margin-top:1rem; padding:0.75rem; background:rgba(255,255,255,0.04); border-radius:8px;">
+          <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.3rem;">COMENTARIO DEL ESTUDIANTE</div>
+          <p style="color:var(--text-secondary); font-size:0.9rem;">{{ submission.comment }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Grade Form -->
+  <div>
+    <div class="card">
+      <h3 class="section-title" style="margin-bottom:1rem;">⭐ Asignar Nota</h3>
+      <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1rem;">
+        Tipo de nota: <strong style="color:var(--text-primary);">
+          {% if activity.grade_type == 'numeric' %}Numerica (0 – {{ activity.max_grade|floatformat:0 }})
+          {% elif activity.grade_type == 'letter' %}Letra (A, B, C, D, F)
+          {% else %}Personalizada{% endif %}
+        </strong>
+      </div>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Nota</label>
+          {% if grade_options %}
+            <select name="grade" class="form-control" required>
+              <option value="">-- Selecciona una nota --</option>
+              {% for opt in grade_options %}
+                <option value="{{ opt }}" {% if submission.grade == opt %}selected{% endif %}>{{ opt }}</option>
+              {% endfor %}
+            </select>
+          {% else %}
+            <input type="number" name="grade" class="form-control"
+              value="{{ submission.grade|default:'' }}"
+              min="0" max="{{ activity.max_grade }}" step="0.5"
+              placeholder="Ej: 85" required>
+            <p class="form-hint">Maximo: {{ activity.max_grade|floatformat:0 }} puntos</p>
+          {% endif %}
+          {% for error in form.grade.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Comentario (opcional)</label>
+          <textarea name="teacher_comment" class="form-control" rows="3"
+            placeholder="Retroalimentacion para el estudiante...">{{ submission.teacher_comment }}</textarea>
+        </div>
+        <button type="submit" id="btn-save-grade" class="btn btn-primary btn-block btn-lg">Guardar Calificacion</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

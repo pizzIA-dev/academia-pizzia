@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}AcademIA - Plataforma educativa moderna impulsada por PizzIA{% endblock %}">
+  <title>{% block title %}AcademIA{% endblock %} | AcademIA</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="{% url 'landing' %}" class="navbar-brand">Academ<span>IA</span></a>
+    <ul class="navbar-nav">
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a></li>
+        {% if user.is_teacher %}
+          <li><a href="{% url 'course_create' %}" class="nav-link">+ Crear Curso</a></li>
+          <li><span class="nav-badge badge-teacher">Profesor</span></li>
+        {% else %}
+          <li><a href="{% url 'course_join' %}" class="nav-link">Unirse</a></li>
+          <li><span class="nav-badge badge-student">Estudiante</span></li>
+        {% endif %}
+        <li><a href="{% url 'logout' %}" class="nav-link">Salir</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}" class="nav-link">Iniciar Sesion</a></li>
+        <li><a href="{% url 'register' %}" class="btn btn-primary btn-sm">Registrarse</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  <main>
+    {% if messages %}
+      <div class="messages-container">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+            {% if message.tags == 'success' %}&#10003;{% elif message.tags == 'error' %}&#10007;{% elif message.tags == 'warning' %}&#9888;{% else %}&#8505;{% endif %}
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="footer-logo">Academ<span>IA</span></span>
+        <span class="footer-sep">|</span>
+        <span>Powered by <a href="https://pizzia.org" target="_blank" rel="noopener">PizzIA</a></span>
+      </div>
+      <div class="footer-copy">
+        &copy; {% now "Y" %} <a href="https://pizzia.org" target="_blank" rel="noopener">PizzIA</a>. Todos los derechos reservados.
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

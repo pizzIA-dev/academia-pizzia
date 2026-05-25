@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Unirse a Curso{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card fade-in">
+    <div style="text-align:center; margin-bottom:1.5rem;">
+      <div style="font-size:3rem;">🔑</div>
+    </div>
+    <h1 class="auth-title" style="text-align:center;">Unirme a un Curso</h1>
+    <p class="auth-subtitle" style="text-align:center;">Ingresa el codigo que te dio tu profesor</p>
+    
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="id_code">Codigo del curso</label>
+        <input type="text" name="code" id="id_code" class="form-control"
+          placeholder="XXXXXXXX" maxlength="8"
+          style="text-transform:uppercase; letter-spacing:4px; font-size:1.4rem; text-align:center; font-family:monospace;"
+          required autocomplete="off">
+        {% for error in form.code.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      </div>
+      <button type="submit" id="btn-join" class="btn btn-primary btn-block btn-lg">Unirme al Curso</button>
+    </form>
+    
+    <div class="auth-footer">
+      <a href="{% url 'dashboard' %}">← Volver al Dashboard</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

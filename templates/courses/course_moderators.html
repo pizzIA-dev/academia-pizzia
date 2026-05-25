@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Moderadores - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <div class="breadcrumb">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>Moderadores</span>
+    </div>
+    <h1 class="page-title">Gestionar Moderadores</h1>
+    <p class="page-subtitle">Los moderadores pueden subir material y calificar entregas</p>
+  </div>
+  <a href="{% url 'course_detail' course.pk %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; flex-wrap:wrap;" class="fade-in">
+  <div class="card">
+    <h3 class="section-title" style="margin-bottom:1.25rem;">Agregar Moderador</h3>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+      <div class="form-group">
+        <label class="form-label">Nombre de usuario</label>
+        <input type="text" name="username" class="form-control"
+          placeholder="username_del_moderador" required autocomplete="off">
+        <p class="form-hint">El usuario debe tener cuenta en EduClass</p>
+      </div>
+      <button type="submit" id="btn-add-moderator" class="btn btn-primary btn-block">Agregar Moderador</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3 class="section-title" style="margin-bottom:1.25rem;">Moderadores Actuales ({{ moderators.count }})</h3>
+    {% if moderators %}
+      {% for mod in moderators %}
+        <div class="file-item">
+          <div class="file-icon file-icon-other">{{ mod.first_name.0|upper }}{{ mod.last_name.0|upper }}</div>
+          <div style="flex:1;">
+            <div class="file-name">{{ mod.get_full_name|default:mod.username }}</div>
+            <div class="file-meta">@{{ mod.username }}</div>
+          </div>
+          <form method="POST" data-confirm="Quitar moderador a {{ mod.username }}?">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="remove">
+            <input type="hidden" name="user_id" value="{{ mod.pk }}">
+            <button type="submit" class="btn btn-danger btn-sm">Quitar</button>
+          </form>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state" style="padding:1.5rem;">
+        <p>No hay moderadores aun.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

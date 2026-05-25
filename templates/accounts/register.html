@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Crear Cuenta{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper" style="align-items:flex-start; padding-top:2rem;">
+  <div class="auth-card fade-in" style="max-width:520px;">
+    <h1 class="auth-title">Crear Cuenta</h1>
+    <p class="auth-subtitle">Completa el formulario para unirte a EduClass</p>
+    
+    <form method="POST" action="{% url 'register' %}">
+      {% csrf_token %}
+      
+      <!-- Role selector -->
+      <div class="form-group">
+        <label class="form-label">Tipo de cuenta</label>
+        <div class="role-selector">
+          <div class="role-option">
+            <input type="radio" name="role" id="role_teacher" value="teacher">
+            <label class="role-label" for="role_teacher">
+              <span class="role-icon">👨‍🏫</span>
+              <strong>Profesor</strong>
+              <span style="font-size:0.75rem; color:var(--text-muted);">Crea y gestiona cursos</span>
+            </label>
+          </div>
+          <div class="role-option">
+            <input type="radio" name="role" id="role_student" value="student" checked>
+            <label class="role-label" for="role_student">
+              <span class="role-icon">👨‍🎓</span>
+              <strong>Estudiante</strong>
+              <span style="font-size:0.75rem; color:var(--text-muted);">Accede a tus cursos</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="form-group">
+          <label class="form-label" for="id_first_name">Nombre</label>
+          <input type="text" name="first_name" id="id_first_name" class="form-control" placeholder="Juan" required>
+          {% for error in form.first_name.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_last_name">Apellido</label>
+          <input type="text" name="last_name" id="id_last_name" class="form-control" placeholder="Perez" required>
+          {% for error in form.last_name.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="id_email">Correo electronico</label>
+        <input type="email" name="email" id="id_email" class="form-control" placeholder="tu@correo.com" required>
+        {% for error in form.email.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="id_username">Nombre de usuario</label>
+        <input type="text" name="username" id="id_username" class="form-control" placeholder="juanperez123" required>
+        {% for error in form.username.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      </div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="form-group">
+          <label class="form-label" for="id_password1">Contrasena</label>
+          <input type="password" name="password1" id="id_password1" class="form-control" required>
+          {% for error in form.password1.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_password2">Confirmar contrasena</label>
+          <input type="password" name="password2" id="id_password2" class="form-control" required>
+          {% for error in form.password2.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        </div>
+      </div>
+
+      {% for error in form.non_field_errors %}
+        <p class="form-error" style="margin-bottom:0.75rem;">{{ error }}</p>
+      {% endfor %}
+      
+      <button type="submit" id="btn-register" class="btn btn-primary btn-block btn-lg" style="margin-top:0.5rem;">
+        Crear mi cuenta
+      </button>
+    </form>
+    
+    <div class="auth-footer">
+      ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesion</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

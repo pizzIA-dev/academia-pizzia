@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title">Hola, {{ user.first_name }} 👋</h1>
+    <p class="page-subtitle">{% if user.is_teacher %}Gestiona tus cursos y estudiantes{% else %}Tus cursos inscritos{% endif %}</p>
+  </div>
+  {% if user.is_teacher %}
+    <a href="{% url 'course_create' %}" id="btn-create-course" class="btn btn-primary">+ Nuevo Curso</a>
+  {% else %}
+    <a href="{% url 'course_join' %}" id="btn-join-course" class="btn btn-primary">+ Unirse a Curso</a>
+  {% endif %}
+</div>
+
+{% if user.is_teacher %}
+  <div class="stats-grid fade-in">
+    <div class="stat-card">
+      <div class="stat-value">{{ courses.count }}</div>
+      <div class="stat-label">Cursos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ total_students }}</div>
+      <div class="stat-label">Estudiantes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ moderated_courses.count }}</div>
+      <div class="stat-label">Moderando</div>
+    </div>
+  </div>
+{% endif %}
+
+{% if courses %}
+  <div class="section-header">
+    <span class="section-title">
+      {% if user.is_teacher %}📖 Mis Cursos{% else %}📚 Mis Cursos{% endif %}
+    </span>
+  </div>
+  <div class="courses-grid fade-in">
+    {% for course in courses %}
+      <a href="{% url 'course_detail' course.pk %}" class="course-card card-link">
+        <div class="course-card">
+          <div class="course-card-header" style="background: linear-gradient(135deg, {{ course.cover_color }}, {{ course.cover_color }}aa);">
+            <div class="course-card-title">{{ course.title }}</div>
+          </div>
+          <div class="course-card-body">
+            <div class="course-meta">
+              <span>{{ course.sessions.count }} sesiones</span>
+              <span>·</span>
+              <span>{{ course.students.count }} estudiantes</span>
+              {% if user.is_teacher %}
+                <span>·</span>
+                <span style="font-family:monospace; color:var(--accent); font-weight:700;">{{ course.code }}</span>
+              {% endif %}
+            </div>
+            {% if course.description %}
+              <p style="font-size:0.83rem; color:var(--text-secondary); margin-top:0.6rem; line-height:1.5;">
+                {{ course.description|truncatechars:70 }}
+              </p>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <div class="empty-icon">{% if user.is_teacher %}📘{% else %}🎒{% endif %}</div>
+    <h3 style="margin-bottom:0.5rem;">
+      {% if user.is_teacher %}No tienes cursos todavia{% else %}No estas inscrito en ningun curso{% endif %}
+    </h3>
+    <p>
+      {% if user.is_teacher %}
+        <a href="{% url 'course_create' %}" class="btn btn-primary" style="margin-top:1rem;">Crear mi primer curso</a>
+      {% else %}
+        <a href="{% url 'course_join' %}" class="btn btn-primary" style="margin-top:1rem;">Unirme con un codigo</a>
+      {% endif %}
+    </p>
+  </div>
+{% endif %}
+
+{% if user.is_teacher and moderated_courses %}
+  <div class="section-header" style="margin-top:2.5rem;">
+    <span class="section-title">🛡️ Cursos que modero</span>
+  </div>
+  <div class="courses-grid">
+    {% for course in moderated_courses %}
+      <a href="{% url 'course_detail' course.pk %}" class="course-card card-link">
+        <div class="course-card">
+          <div class="course-card-header" style="background: linear-gradient(135deg, {{ course.cover_color }}, {{ course.cover_color }}aa);">
+            <div class="course-card-title">{{ course.title }}</div>
+          </div>
+          <div class="course-card-body">
+            <div class="course-meta">
+              <span class="nav-badge badge-moderator">Moderador</span>
+              <span>{{ course.sessions.count }} sesiones</span>
+            </div>
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

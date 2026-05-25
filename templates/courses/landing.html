@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Inicio{% endblock %}
+{% block meta_description %}AcademIA - Plataforma educativa moderna para profesores y estudiantes. Gestiona clases, materiales y actividades.{% endblock %}
+
+{% block content %}
+<div class="landing-hero">
+  <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(0,198,255,0.1); border:1px solid rgba(0,198,255,0.25); border-radius:20px; padding:0.4rem 1rem; font-size:0.8rem; color:var(--accent); margin-bottom:1.5rem; font-weight:600; letter-spacing:0.05em;">
+    IMPULSADO POR PIZZIA &nbsp;&bull;&nbsp; <a href="https://pizzia.org" target="_blank" rel="noopener" style="color:var(--accent-3); text-decoration:none;">pizzia.org</a>
+  </div>
+  <h1 class="hero-title fade-in">
+    Aprende sin<br><span class="gradient">limites</span>
+  </h1>
+  <p class="hero-subtitle fade-in">
+    AcademIA es la plataforma educativa moderna para profesores y estudiantes. Comparte materiales, asigna tareas y da seguimiento al aprendizaje en un solo lugar.
+  </p>
+  <div class="hero-actions fade-in">
+    <a href="{% url 'register' %}" id="btn-get-started" class="btn btn-primary btn-lg">Comenzar gratis</a>
+    <a href="{% url 'login' %}" id="btn-login-hero" class="btn btn-secondary btn-lg">Iniciar sesion</a>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card fade-in">
+      <div class="feature-icon">&#128218;</div>
+      <div class="feature-title">Material Semanal</div>
+      <div class="feature-desc">Sube PPTs, Excel, Word y PDF para cada sesion de clase</div>
+    </div>
+    <div class="feature-card fade-in">
+      <div class="feature-icon">&#127909;</div>
+      <div class="feature-title">Videos de Clase</div>
+      <div class="feature-desc">Sube grabaciones directamente o enlaza YouTube/Drive</div>
+    </div>
+    <div class="feature-card fade-in">
+      <div class="feature-icon">&#128221;</div>
+      <div class="feature-title">Actividades</div>
+      <div class="feature-desc">Crea tareas con fecha limite y archivos de instrucciones</div>
+    </div>
+    <div class="feature-card fade-in">
+      <div class="feature-icon">&#10025;</div>
+      <div class="feature-title">Calificaciones</div>
+      <div class="feature-desc">Califica con nota numerica, letra o escala personalizada</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
