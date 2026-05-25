@@ -488,3 +488,18 @@ def remove_student(request, pk, student_pk):
         EnrollmentRequest.objects.filter(user=student, course=course).update(status='rejected')
         messages.success(request, f'{student.display_name} fue removido del curso.')
     return redirect('enrollment_requests', pk=pk)
+
+
+@login_required
+def download_material(request, pk):
+    """Force-download a material file, works with Cloudinary.""""
+    import urllib.request
+    material = get_object_or_404(SessionMaterial, pk=pk)
+    course = material.session.course
+    if not request.user.is_member_of(course):
+        messages.error(request, 'No tienes acceso a este archivo.')
+        return redirect('dashboard')
+    # Redirect to Cloudinary with fl_attachment flag
+    url = material.file.url
+    download_url = url.replace('/upload/', '/upload/fl_attachment/')
+    return redirect(download_url)
