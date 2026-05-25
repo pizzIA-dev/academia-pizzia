@@ -204,3 +204,45 @@ class Submission(models.Model):
     @property
     def is_graded(self):
         return bool(self.grade)
+
+
+class ClassRecording(models.Model):
+    SOURCE_CHOICES = [
+        ('drive',   'Google Drive'),
+        ('youtube', 'YouTube'),
+        ('zoom',    'Zoom'),
+        ('meet',    'Google Meet'),
+        ('other',   'Otro enlace'),
+    ]
+    session     = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='recordings')
+    title       = models.CharField(max_length=200)
+    link        = models.URLField(max_length=500)
+    source      = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='other')
+    description = models.CharField(max_length=300, blank=True)
+    added_at    = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-added_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.session})"
+
+    @property
+    def embed_url(self):
+        import re
+        yt = re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]+)', self.link)
+        if yt:
+            return f"https://www.youtube.com/embed/{yt.group(1)}"
+        return None
+
+    @property
+    def is_youtube(self):
+        return 'youtube.com' in self.link or 'youtu.be' in self.link
+
+    @property
+    def source_icon(self):
+        return {'drive':'📁','youtube':'▶️','zoom':'💻','meet':'📹','other':'🔗'}.get(self.source, '🔗')
+
+    @property
+    def source_color(self):
+        return {'drive':'#4285F4','youtube':'#FF0000','zoom':'#2D8CFF','meet':'#00897B','other':'#6366f1'}.get(self.source, '#6366f1')

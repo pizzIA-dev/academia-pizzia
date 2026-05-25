@@ -213,9 +213,12 @@ def session_detail(request, pk):
     materials = session.materials.all()
     activities = session.activities.all()
     can_manage = request.user.can_manage(course)
+    from .models import ClassRecording
+    recordings = session.recordings.all()
     return render(request, 'courses/session_detail.html', {
         'session': session, 'course': course,
         'materials': materials, 'activities': activities,
+        'recordings': recordings,
         'can_manage': can_manage,
     })
 
@@ -729,3 +732,38 @@ def material_upload_ajax(request, session_pk):
             'upload_date': material.upload_date.strftime('%d/%m/%Y'),
         })
     return JsonResponse({'error': str(form.errors)}, status=400)
+
+
+@login_required
+def recording_add(request, session_pk):
+    from .models import ClassRecording
+    session = get_object_or_404(Session, pk=session_pk)
+    if not request.user.can_manage(session.course):
+        messages.error(request, 'Sin permiso.')
+        return redirect('session_detail', pk=session_pk)
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        link  = request.POST.get('link', '').strip()
+        source = request.POST.get('source', 'other')
+        description = request.POST.get('description', '').strip()
+        if title and link:
+            ClassRecording.objects.create(
+                session=session, title=title, link=link,
+                source=source, description=description)
+            messages.success(request, 'Grabación agregada.')
+        else:
+            messages.error(request, 'Título y enlace son requeridos.')
+    return redirect('session_detail', pk=session_pk)
+
+
+@login_required
+def recording_delete(request, pk):
+    from .models import ClassRecording
+    rec = get_object_or_404(ClassRecording, pk=pk)
+    if request.user.can_manage(rec.session.course):
+        session_pk = rec.session.pk
+        rec.delete()
+        messages.success(request, 'Grabación eliminada.')
+        return redirect('session_detail', pk=session_pk)
+    messages.error(request, 'Sin permiso.')
+    return redirect('dashboard')

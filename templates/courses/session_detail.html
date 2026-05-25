@@ -1,6 +1,376 @@
 {% extends 'base.html' %}
 {% load file_tags %}
-{% block title %}{{ session.title }}{% endblock %}
+{% block title %}{{ session.title }}
+<!-- ═══════════ UPLOAD MODAL ═══════════ -->
+{% if can_manage %}
+<div id="upload-modal" style="display:none;position:fixed;inset:0;z-index:2000;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;">
+  <div style="background:#1e2236;border:1px solid rgba(255,255,255,.1);
+    border-radius:16px;padding:2rem;width:90%;max-width:480px;
+    box-shadow:0 24px 60px rgba(0,0,0,.6);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <h3 style="margin:0;font-size:1.1rem;color:#fff;">Subir Material</h3>
+      <button onclick="closeUploadModal()" id="upload-close-btn"
+        style="background:rgba(239,68,68,.15);border:none;color:#ef4444;
+               border-radius:6px;padding:.3rem .6rem;cursor:pointer;font-size:1rem;">✕</button>
+    </div>
+    <form id="upload-form" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div style="margin-bottom:1rem;">
+        <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Nombre del material *</label>
+        <input type="text" name="name" id="upload-name" required
+          style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);
+                 border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
+          placeholder="Ej: Presentación Semana 1">
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Archivo *</label>
+        <div id="drop-zone" onclick="document.getElementById('upload-file').click()"
+          style="border:2px dashed rgba(255,255,255,.2);border-radius:10px;padding:2rem;
+                 text-align:center;cursor:pointer;transition:.2s;color:rgba(255,255,255,.4);">
+          <div style="font-size:2rem;margin-bottom:.5rem;">📁</div>
+          <div id="drop-label">Haz clic o arrastra el archivo aquí</div>
+        </div>
+        <input type="file" id="upload-file" name="file" required style="display:none"
+          accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.mp4,.mov,.avi,.mkv,.webm,.mp3">
+      </div>
+      <div id="upload-progress-wrap" style="display:none;margin-bottom:1rem;">
+        <div style="display:flex;justify-content:space-between;font-size:.8rem;color:rgba(255,255,255,.6);margin-bottom:.4rem;">
+          <span id="upload-status-text">Subiendo...</span>
+          <span id="upload-pct">0%</span>
+        </div>
+        <div style="background:rgba(255,255,255,.08);border-radius:99px;height:6px;overflow:hidden;">
+          <div id="upload-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#38bdf8,#818cf8);border-radius:99px;transition:width .3s;"></div>
+        </div>
+        <div id="upload-speed" style="font-size:.75rem;color:rgba(255,255,255,.4);margin-top:.3rem;"></div>
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+        <button type="button" onclick="closeUploadModal()" id="upload-cancel-btn"
+          style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.7);border-radius:8px;padding:.6rem 1.2rem;cursor:pointer;">Cancelar</button>
+        <button type="submit" id="upload-submit-btn"
+          style="background:linear-gradient(135deg,#38bdf8,#818cf8);border:none;color:#fff;border-radius:8px;padding:.6rem 1.4rem;cursor:pointer;font-weight:600;">Subir</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Floating Upload Widget -->
+<div id="upload-widget" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:3000;
+  background:#1e2236;border:1px solid rgba(56,189,248,.3);border-radius:12px;
+  padding:1rem 1.2rem;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.5);">
+  <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;">
+    <div id="widget-icon">⬆️</div>
+    <div style="flex:1;min-width:0;">
+      <div id="widget-name" style="color:#fff;font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+      <div id="widget-sub" style="color:rgba(255,255,255,.4);font-size:.75rem;"></div>
+    </div>
+    <div id="widget-pct" style="color:#38bdf8;font-size:.85rem;font-weight:700;"></div>
+  </div>
+  <div style="background:rgba(255,255,255,.08);border-radius:99px;height:4px;overflow:hidden;">
+    <div id="widget-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#38bdf8,#818cf8);border-radius:99px;transition:width .3s;"></div>
+  </div>
+</div>
+
+<script>
+var currentXHR = null;
+var uploadAjaxUrl = '{% url "material_upload_ajax" session.pk %}';
+var uploadStartTime = null;
+
+function openUploadModal() {
+  document.getElementById('upload-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeUploadModal() {
+  if (currentXHR && currentXHR.readyState !== 4) {
+    if (!confirm('La subida está en progreso. ¿Cancelar?')) return;
+    currentXHR.abort();
+  }
+  document.getElementById('upload-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  resetUploadForm();
+}
+function resetUploadForm() {
+  var f = document.getElementById('upload-form');
+  if (f) f.reset();
+  document.getElementById('drop-label').textContent = 'Haz clic o arrastra el archivo aquí';
+  document.getElementById('upload-progress-wrap').style.display = 'none';
+  document.getElementById('upload-bar').style.width = '0%';
+  document.getElementById('upload-pct').textContent = '0%';
+  document.getElementById('upload-submit-btn').disabled = false;
+  document.getElementById('upload-submit-btn').textContent = 'Subir';
+  document.getElementById('upload-cancel-btn').disabled = false;
+  document.getElementById('upload-close-btn').disabled = false;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var fileInput = document.getElementById('upload-file');
+  var dropZone  = document.getElementById('drop-zone');
+
+  if (fileInput) fileInput.addEventListener('change', function() {
+    var f = this.files[0];
+    if (f) {
+      document.getElementById('drop-label').textContent = f.name + ' (' + fmtSize(f.size) + ')';
+      var nameInput = document.getElementById('upload-name');
+      if (nameInput && !nameInput.value)
+        nameInput.value = f.name.replace(/\.[^.]+$/, '');
+    }
+  });
+
+  if (dropZone) {
+    dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.style.borderColor='#38bdf8'; });
+    dropZone.addEventListener('dragleave', function() { dropZone.style.borderColor=''; });
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault(); dropZone.style.borderColor='';
+      var f = e.dataTransfer.files[0];
+      if (f) {
+        fileInput.files = e.dataTransfer.files;
+        document.getElementById('drop-label').textContent = f.name + ' (' + fmtSize(f.size) + ')';
+        var nameInput = document.getElementById('upload-name');
+        if (nameInput && !nameInput.value) nameInput.value = f.name.replace(/\.[^.]+$/, '');
+      }
+    });
+  }
+
+  var form = document.getElementById('upload-form');
+  if (form) form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var fileInput = document.getElementById('upload-file');
+    if (!fileInput.files[0]) { alert('Selecciona un archivo'); return; }
+    var formData = new FormData(this);
+    uploadStartTime = Date.now();
+    document.getElementById('upload-submit-btn').disabled = true;
+    document.getElementById('upload-submit-btn').textContent = 'Subiendo...';
+    document.getElementById('upload-cancel-btn').disabled = true;
+    document.getElementById('upload-close-btn').disabled = true;
+    document.getElementById('upload-progress-wrap').style.display = 'block';
+    var fileName = document.getElementById('upload-name').value || fileInput.files[0].name;
+    showWidget(fileName, fileInput.files[0].size);
+    currentXHR = new XMLHttpRequest();
+    currentXHR.open('POST', uploadAjaxUrl, true);
+    currentXHR.upload.addEventListener('progress', function(e) {
+      if (!e.lengthComputable) return;
+      var pct = Math.round(e.loaded/e.total*100);
+      var elapsed = (Date.now()-uploadStartTime)/1000;
+      var speed = e.loaded/elapsed;
+      var remaining = (e.total-e.loaded)/speed;
+      document.getElementById('upload-bar').style.width = pct+'%';
+      document.getElementById('upload-pct').textContent = pct+'%';
+      document.getElementById('upload-status-text').textContent = 'Subiendo... '+fmtSize(e.loaded)+' / '+fmtSize(e.total);
+      document.getElementById('upload-speed').textContent = fmtSize(speed)+'/s · '+fmtTime(remaining)+' restantes';
+      updateWidget(pct, speed, remaining);
+    });
+    currentXHR.addEventListener('load', function() {
+      currentXHR = null;
+      if (this.status === 200) {
+        try {
+          var data = JSON.parse(this.responseText);
+          if (data.success) {
+            completeWidget(data.name);
+            showToast('✅ "'+data.name+'" subido exitosamente', 'success');
+            document.getElementById('upload-modal').style.display = 'none';
+            document.body.style.overflow = '';
+            resetUploadForm();
+            setTimeout(function(){ window.location.reload(); }, 1000);
+            return;
+          }
+        } catch(ex) {}
+      }
+      failWidget();
+      showToast('❌ Error al subir el archivo', 'error');
+      document.getElementById('upload-submit-btn').disabled = false;
+      document.getElementById('upload-submit-btn').textContent = 'Reintentar';
+      document.getElementById('upload-cancel-btn').disabled = false;
+      document.getElementById('upload-close-btn').disabled = false;
+    });
+    currentXHR.addEventListener('error', function() {
+      currentXHR = null; failWidget();
+      showToast('❌ Error de red', 'error');
+      document.getElementById('upload-submit-btn').disabled = false;
+      document.getElementById('upload-submit-btn').textContent = 'Reintentar';
+      document.getElementById('upload-cancel-btn').disabled = false;
+      document.getElementById('upload-close-btn').disabled = false;
+    });
+    currentXHR.addEventListener('abort', function() { currentXHR = null; hideWidget(); });
+    currentXHR.send(formData);
+  });
+
+  // Warn before navigating away during upload
+  window.addEventListener('beforeunload', function(e) {
+    if (currentXHR && currentXHR.readyState !== 4) {
+      e.preventDefault();
+      return (e.returnValue = 'Hay una subida en progreso. ¿Seguro que quieres salir?');
+    }
+  });
+});
+
+function showWidget(name, size) {
+  document.getElementById('widget-name').textContent = name;
+  document.getElementById('widget-sub').textContent = fmtSize(size);
+  document.getElementById('widget-pct').textContent = '0%';
+  document.getElementById('widget-bar').style.width = '0%';
+  document.getElementById('widget-icon').textContent = '⬆️';
+  document.getElementById('upload-widget').style.display = 'block';
+  document.getElementById('upload-widget').style.borderColor = 'rgba(56,189,248,.3)';
+}
+function updateWidget(pct, speed, remaining) {
+  document.getElementById('widget-pct').textContent = pct+'%';
+  document.getElementById('widget-bar').style.width = pct+'%';
+  document.getElementById('widget-sub').textContent = fmtSize(speed)+'/s · '+fmtTime(remaining);
+}
+function completeWidget(name) {
+  document.getElementById('widget-icon').textContent = '✅';
+  document.getElementById('widget-pct').textContent = '100%';
+  document.getElementById('widget-bar').style.width = '100%';
+  document.getElementById('widget-sub').textContent = 'Completado';
+  document.getElementById('upload-widget').style.borderColor = 'rgba(34,197,94,.4)';
+  setTimeout(hideWidget, 4000);
+}
+function failWidget() {
+  document.getElementById('widget-icon').textContent = '❌';
+  document.getElementById('widget-sub').textContent = 'Error';
+  document.getElementById('upload-widget').style.borderColor = 'rgba(239,68,68,.4)';
+  setTimeout(hideWidget, 5000);
+}
+function hideWidget() { document.getElementById('upload-widget').style.display = 'none'; }
+
+function showToast(msg, type) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:5rem;right:1.5rem;z-index:4000;' +
+    'background:'+(type==='success'?'rgba(34,197,94,.15)':'rgba(239,68,68,.15)')+';' +
+    'border:1px solid '+(type==='success'?'rgba(34,197,94,.4)':'rgba(239,68,68,.4)')+';' +
+    'color:#fff;padding:.75rem 1.2rem;border-radius:10px;font-size:.9rem;' +
+    'box-shadow:0 4px 20px rgba(0,0,0,.4);max-width:320px;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 4000);
+}
+function fmtSize(b) {
+  if (b<1024) return b+' B';
+  if (b<1048576) return (b/1024).toFixed(1)+' KB';
+  if (b<1073741824) return (b/1048576).toFixed(1)+' MB';
+  return (b/1073741824).toFixed(2)+' GB';
+}
+function fmtTime(s) {
+  if (!isFinite(s)||s>3600) return '—';
+  if (s<60) return Math.round(s)+'s';
+  return Math.floor(s/60)+'m '+Math.round(s%60)+'s';
+}
+</script>
+{% endif %}
+
+
+<!-- ═══════════ GRABACIONES DE LA CLASE ═══════════ -->
+<div class="section-header fade-in" style="margin-top:2.5rem;">
+  <span class="section-title">🎬 Grabaciones de la Clase</span>
+  {% if can_manage %}
+  <button onclick="document.getElementById('rec-form-wrap').style.display=document.getElementById('rec-form-wrap').style.display==='none'?'block':'none'"
+    class="btn btn-primary btn-sm">+ Agregar Grabación</button>
+  {% endif %}
+</div>
+
+{% if can_manage %}
+<div id="rec-form-wrap" style="display:none;margin-bottom:1.5rem;">
+  <div class="card fade-in" style="padding:1.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;">
+    <form method="POST" action="{% url 'recording_add' session.pk %}">
+      {% csrf_token %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+        <div>
+          <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Título *</label>
+          <input type="text" name="title" required
+            style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
+            placeholder="Ej: Clase 1 - Introducción">
+        </div>
+        <div>
+          <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Fuente</label>
+          <select name="source"
+            style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;">
+            <option value="drive">📁 Google Drive</option>
+            <option value="youtube">▶️ YouTube</option>
+            <option value="zoom">💻 Zoom</option>
+            <option value="meet">📹 Google Meet</option>
+            <option value="other">🔗 Otro enlace</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Enlace *</label>
+        <input type="url" name="link" required
+          style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
+          placeholder="https://drive.google.com/... o https://youtu.be/...">
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Descripción (opcional)</label>
+        <input type="text" name="description"
+          style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
+          placeholder="Ej: Temas: repaso examen, ejercicios prácticos">
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+        <button type="button" onclick="document.getElementById('rec-form-wrap').style.display='none'"
+          style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.7);border-radius:8px;padding:.6rem 1.2rem;cursor:pointer;">Cancelar</button>
+        <button type="submit"
+          style="background:linear-gradient(135deg,#38bdf8,#818cf8);border:none;color:#fff;border-radius:8px;padding:.6rem 1.4rem;cursor:pointer;font-weight:600;">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if recordings %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;margin-bottom:2rem;">
+  {% for rec in recordings %}
+  <div class="card fade-in" style="border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#12172a;">
+    {% if rec.is_youtube and rec.embed_url %}
+    <div style="position:relative;padding-top:56.25%;background:#000;">
+      <iframe src="{{ rec.embed_url }}"
+        style="position:absolute;inset:0;width:100%;height:100%;border:none;"
+        allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+        allowfullscreen></iframe>
+    </div>
+    {% else %}
+    <a href="{{ rec.link }}" target="_blank" rel="noopener"
+      style="display:block;padding:1.5rem;background:linear-gradient(135deg,{{ rec.source_color }}22,{{ rec.source_color }}11);
+             text-align:center;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="font-size:2.5rem;margin-bottom:.5rem;">{{ rec.source_icon }}</div>
+      <div style="color:{{ rec.source_color }};font-size:.8rem;font-weight:600;">
+        {{ rec.get_source_display }} → Abrir grabación
+      </div>
+    </a>
+    {% endif %}
+    <div style="padding:1rem;">
+      <div style="font-weight:600;color:#fff;margin-bottom:.3rem;font-size:.95rem;">{{ rec.title }}</div>
+      {% if rec.description %}
+      <div style="color:rgba(255,255,255,.5);font-size:.8rem;margin-bottom:.5rem;">{{ rec.description }}</div>
+      {% endif %}
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="color:rgba(255,255,255,.35);font-size:.75rem;">{{ rec.added_at|date:"d/m/Y" }}</span>
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          <a href="{{ rec.link }}" target="_blank" rel="noopener"
+            style="font-size:.75rem;color:#38bdf8;text-decoration:none;background:rgba(56,189,248,.1);
+                   padding:.25rem .6rem;border-radius:6px;">🔗 Abrir</a>
+          {% if can_manage %}
+          <form method="POST" action="{% url 'recording_delete' rec.pk %}" style="display:inline;"
+            onsubmit="return confirm('¿Eliminar esta grabación?')">
+            {% csrf_token %}
+            <button type="submit"
+              style="font-size:.75rem;color:#ef4444;background:rgba(239,68,68,.1);border:none;
+                     padding:.25rem .6rem;border-radius:6px;cursor:pointer;">🗑</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state fade-in" style="padding:2rem;text-align:center;margin-bottom:2rem;">
+  <div style="font-size:2rem;margin-bottom:.5rem;">🎬</div>
+  <p style="color:rgba(255,255,255,.4);font-size:.9rem;">No hay grabaciones en esta sesión</p>
+</div>
+{% endif %}
+
+{% endblock %}
 
 {% block content %}
 <div class="page-header fade-in">

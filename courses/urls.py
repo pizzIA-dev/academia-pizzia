@@ -33,6 +33,10 @@ urlpatterns = [
     path('materials/<int:pk>/view/<path:filename>', views.view_material, name='material_view_named'),
     path('materials/<int:pk>/debug/', views.debug_material, name='material_debug'),
 
+    # Recordings
+    path('sessions/<int:session_pk>/recordings/add/', views.recording_add, name='recording_add'),
+    path('recordings/<int:pk>/delete/', views.recording_delete, name='recording_delete'),
+
     # Activities CRUD
     path('sessions/<int:session_pk>/activities/create/', views.activity_create, name='activity_create'),
     path('activities/<int:pk>/', views.activity_detail, name='activity_detail'),
