@@ -343,5 +343,29 @@ function showDocFallback(type, name, ext, dlUrl) {
     </div>`;
 }
 
+
+function closePreview() {
+  const modal = document.getElementById('preview-modal');
+  const body  = document.getElementById('preview-body');
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+  // Revoke any blob URLs to free memory
+  const iframe = body.querySelector('iframe');
+  if (iframe && iframe.src && iframe.src.startsWith('blob:')) {
+    URL.revokeObjectURL(iframe.src);
+  }
+  body.innerHTML = '';
+}
+
+// Close on backdrop click
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('preview-modal');
+  if (modal) {
+    modal.addEventListener('click', e => {
+      if (e.target === modal) closePreview();
+    });
+  }
+});
+
 </script>
 {% endblock %}
