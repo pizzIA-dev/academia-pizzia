@@ -701,3 +701,31 @@ def debug_material(request, pk):
         'candidates': candidates,
         'results': results,
     }, json_dumps_params={'indent': 2})
+
+
+@login_required
+def material_upload_ajax(request, session_pk):
+    """AJAX upload endpoint — returns JSON, supports XHR progress tracking."""
+    from django.http import JsonResponse
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    session = get_object_or_404(Session, pk=session_pk)
+    course = session.course
+    if not request.user.can_manage(course):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+
+    form = MaterialUploadForm(request.POST, request.FILES)
+    if form.is_valid():
+        material = form.save(commit=False)
+        material.session = session
+        material.save()
+        ct = MATERIAL_CONTENT_TYPES.get(material.file_type, 'application/octet-stream')
+        return JsonResponse({
+            'success': True,
+            'pk': material.pk,
+            'name': material.name,
+            'file_type': material.file_type,
+            'upload_date': material.upload_date.strftime('%d/%m/%Y'),
+        })
+    return JsonResponse({'error': str(form.errors)}, status=400)

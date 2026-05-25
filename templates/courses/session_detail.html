@@ -58,7 +58,7 @@
 <div class="section-header fade-in">
   <span class="section-title">&#128206; Material de Clase</span>
   {% if can_manage %}
-    <a href="{% url 'material_upload' session.pk %}" class="btn btn-secondary btn-sm">+ Subir Archivo</a>
+    <button onclick="openUploadModal()" class="btn btn-primary btn-sm">+ Subir Archivo</button>
   {% endif %}
 </div>
 

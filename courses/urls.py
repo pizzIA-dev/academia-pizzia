@@ -26,6 +26,7 @@ urlpatterns = [
 
     # Materials
     path('sessions/<int:session_pk>/materials/upload/', views.material_upload, name='material_upload'),
+    path('sessions/<int:session_pk>/materials/upload-ajax/', views.material_upload_ajax, name='material_upload_ajax'),
     path('materials/<int:pk>/delete/', views.material_delete, name='material_delete'),
     path('materials/<int:pk>/download/', views.download_material, name='material_download'),
     path('materials/<int:pk>/view/', views.view_material, name='material_view'),
