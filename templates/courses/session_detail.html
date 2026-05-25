@@ -192,15 +192,14 @@
 
 {% block extra_js %}
 <script>
-function handleCardClick(url, type, name) {
+function handleCardClick(url, type, name, viewUrl, dlUrl) {
   if (type === 'video') {
-    // Videos: embed in modal
-    openPreview(url, 'video', name);
+    openPreview(url, 'video', name, dlUrl);
   } else if (type === 'pdf') {
-    // PDF: try embed in modal, fallback shows open-in-tab button
-    openPreview(url, 'pdf', name);
+    // Use /view/ endpoint — Django serves PDF with correct Content-Type inline
+    openPreview(viewUrl || url, 'pdf', name, dlUrl);
   } else {
-    // Word/Excel/PPT/other: open in new tab (most reliable)
+    // Word/Excel/PPT: open directly in new tab
     window.open(url, '_blank');
   }
 }
@@ -210,15 +209,15 @@ function getDownloadUrl(url) {
   return url.replace('/upload/', '/upload/fl_attachment/');
 }
 
-function openPreview(url, type, name) {
+function openPreview(url, type, name, dlUrl) {
   const modal = document.getElementById('preview-modal');
   const body = document.getElementById('preview-body');
   const title = document.getElementById('preview-title');
   const dl = document.getElementById('preview-download');
 
   title.textContent = name;
-  // Download link always forces attachment
-  dl.href = getDownloadUrl(url);
+  // Use explicit download URL if provided, else fallback
+  dl.href = dlUrl || getDownloadUrl(url);
   body.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:0.9rem;">Cargando...</div>';
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -226,19 +225,13 @@ function openPreview(url, type, name) {
   // Small delay so modal renders before heavy content
   setTimeout(() => {
     if (type === 'pdf') {
-      // <object> tag works better than iframe for Cloudinary PDFs
+      // url here is already the Django /view/ proxy URL — serves with correct Content-Type
       body.innerHTML = `
-        <div style="width:100%;height:75vh;display:flex;flex-direction:column;">
-          <object data="${url}" type="application/pdf"
-            style="width:100%;flex:1;border:none;">
-            <div style="text-align:center;padding:2rem;color:rgba(255,255,255,0.7);">
-              <p style="margin-bottom:1rem;">Tu navegador no puede mostrar el PDF aqui.</p>
-              <a href="${url}" target="_blank"
-                style="color:#fff;background:var(--accent);padding:0.6rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600;">
-                &#128065; Abrir PDF en nueva pestaña
-              </a>
-            </div>
-          </object>
+        <div style="width:100%;height:75vh;">
+          <iframe src="${url}"
+            style="width:100%;height:75vh;border:none;border-radius:0 0 12px 12px;"
+            title="PDF viewer">
+          </iframe>
         </div>`;
     } else if (type === 'video') {
       body.innerHTML = `

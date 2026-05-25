@@ -490,12 +490,44 @@ def remove_student(request, pk, student_pk):
     return redirect('enrollment_requests', pk=pk)
 
 
+
+def _get_cloudinary_file_url(url, file_type, for_download=False):
+    """
+    Fix Cloudinary URLs:
+    - Old files stored as /image/upload/ need .pdf/.docx etc. appended
+    - New files stored as /raw/upload/ work as-is
+    For download, we just return the URL and let the proxy handle headers.
+    """
+    if not url:
+        return url
+
+    # Map file types to extensions
+    EXT_MAP = {
+        'pdf': '.pdf', 'ppt': '.pptx', 'word': '.docx',
+        'excel': '.xlsx', 'video': '.mp4',
+    }
+
+    # If it's a raw URL, return as-is (new uploads)
+    if '/raw/upload/' in url:
+        return url
+
+    # Old image-type URL: check if it already has an extension
+    base = url.split('?')[0]
+    last_part = base.split('/')[-1]
+    has_ext = '.' in last_part.split('_')[-1]  # Cloudinary IDs have underscores
+
+    if not has_ext and file_type in EXT_MAP:
+        # Append the correct extension so Cloudinary serves original file
+        url = url + EXT_MAP[file_type]
+
+    return url
+
 @login_required
 def download_material(request, pk):
     """
     Smart download:
-    - Videos/audio → redirect directly to Cloudinary (bypass memory limits).
-    - Docs/PDFs    → proxy through Django to force Content-Disposition attachment.
+    - Videos/audio  → redirect directly to Cloudinary CDN.
+    - Docs/PDFs     → proxy through Django, fixing the URL for old image-type uploads.
     """
     import requests as req
     from django.http import HttpResponse
@@ -505,36 +537,71 @@ def download_material(request, pk):
         messages.error(request, 'No tienes acceso a este archivo.')
         return redirect('dashboard')
 
-    url = material.file.url
-
-    # Videos and audio: redirect straight to Cloudinary CDN.
-    # Cloudinary handles range requests and large file streaming natively.
+    raw_url = material.file.url
     VIDEO_TYPES = ('video', 'audio')
-    if material.file_type in VIDEO_TYPES:
-        return redirect(url)
 
-    # Small files (docs, PDFs, etc.): proxy through Django to force download.
+    if material.file_type in VIDEO_TYPES:
+        # Videos: redirect to CDN — avoids loading huge files into RAM
+        return redirect(raw_url)
+
+    # Fix URL for old Cloudinary image-type uploads
+    url = _get_cloudinary_file_url(raw_url, material.file_type, for_download=True)
+    safe_name = material.name.replace('"', "\'")
+
+    CONTENT_TYPES = {
+        'pdf': 'application/pdf',
+        'ppt': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'word': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'excel': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'zip': 'application/zip',
+    }
+    EXTENSIONS = {
+        'pdf': '.pdf', 'ppt': '.pptx', 'word': '.docx', 'excel': '.xlsx', 'zip': '.zip'
+    }
+    ct = CONTENT_TYPES.get(material.file_type, 'application/octet-stream')
+    ext = EXTENSIONS.get(material.file_type, '')
+    if ext and not safe_name.endswith(ext):
+        safe_name += ext
+
     try:
         r = req.get(url, timeout=30)
-        content_type = r.headers.get('Content-Type', 'application/octet-stream')
-        safe_name = material.name.replace('"', "'")
-        if '.' not in safe_name.split('/')[-1]:
-            ext_map = {
-                'application/pdf': '.pdf',
-                'application/vnd.ms-powerpoint': '.ppt',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
-                'application/vnd.ms-excel': '.xls',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
-                'application/msword': '.doc',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
-                'text/plain': '.txt',
-                'application/zip': '.zip',
-            }
-            ext = ext_map.get(content_type.split(';')[0].strip(), '')
-            safe_name += ext
-        response = HttpResponse(r.content, content_type=content_type)
+        r.raise_for_status()
+        response = HttpResponse(r.content, content_type=ct)
         response['Content-Disposition'] = f'attachment; filename="{safe_name}"'
         return response
     except Exception as e:
-        messages.error(request, f'Error al descargar: {e}')
-        return redirect('session_detail', pk=material.session.pk)
+        # Fallback: redirect directly to URL
+        return redirect(url)
+
+
+@login_required
+def view_material(request, pk):
+    """Proxy-serve a material file inline (for PDF preview in iframe)."""
+    import requests as req
+    from django.http import HttpResponse
+    material = get_object_or_404(SessionMaterial, pk=pk)
+    course = material.session.course
+    if not request.user.is_member_of(course):
+        return redirect('dashboard')
+
+    raw_url = material.file.url
+    url = _get_cloudinary_file_url(raw_url, material.file_type)
+
+    CONTENT_TYPES = {
+        'pdf': 'application/pdf',
+        'ppt': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'word': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'excel': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    }
+    ct = CONTENT_TYPES.get(material.file_type, 'application/octet-stream')
+
+    try:
+        r = req.get(url, timeout=30)
+        r.raise_for_status()
+        response = HttpResponse(r.content, content_type=ct)
+        # inline = let browser display it, not download
+        response['Content-Disposition'] = f'inline; filename="{material.name}"'
+        response['X-Frame-Options'] = 'SAMEORIGIN'
+        return response
+    except Exception:
+        return redirect(url)
