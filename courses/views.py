@@ -566,8 +566,12 @@ def view_material(request, pk):
     ct = MATERIAL_CONTENT_TYPES.get(material.file_type, 'application/octet-stream')
     try:
         content = _cloudinary_get_bytes(material.file.url)
+        ext = MATERIAL_EXTENSIONS.get(material.file_type, '')
+        safe_name = material.name.replace('"', "'")
+        if ext and not safe_name.lower().endswith(ext):
+            safe_name += ext
         response = HttpResponse(content, content_type=ct)
-        response['Content-Disposition'] = f'inline; filename="{material.name}"'
+        response['Content-Disposition'] = f'inline; filename="{safe_name}"'
         response['X-Frame-Options'] = 'SAMEORIGIN'
         response['Cache-Control'] = 'private, max-age=3600'
         return response
