@@ -1,1 +1,1 @@
-web: gunicorn educlass.wsgi --log-file -
+web: gunicorn educlass.wsgi --bind 0.0.0.0:$PORT --workers 2 --log-file -
