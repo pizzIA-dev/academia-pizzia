@@ -630,3 +630,73 @@ def download_material(request, pk):
     messages.error(request, f'Error al descargar: {last_error}')
     return redirect(material.file.url)
 
+
+
+@login_required
+def debug_material(request, pk):
+    """Diagnostic: shows what Cloudinary returns for a material file URL."""
+    import requests as req
+    from django.http import JsonResponse
+    from urllib.parse import urlparse, quote, urlunparse
+    import urllib.request
+
+    # Only allow staff/superuser
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'forbidden'}, status=403)
+
+    material = get_object_or_404(SessionMaterial, pk=pk)
+    raw_url = material.file.url
+    candidates = _build_cloudinary_urls(raw_url)
+
+    results = []
+    for url in candidates:
+        parsed = urlparse(url)
+        safe_path = quote(parsed.path, safe='/:@!$&\'()*+,;=-.~%')
+        encoded_url = urlunparse(parsed._replace(path=safe_path))
+
+        # Try with requests
+        try:
+            r = req.get(encoded_url, timeout=15, allow_redirects=True,
+                        headers={'User-Agent': 'Mozilla/5.0 (compatible; AcademIA)'})
+            content = r.content
+            results.append({
+                'method': 'requests',
+                'url': encoded_url,
+                'status': r.status_code,
+                'content_type': r.headers.get('Content-Type', ''),
+                'content_length': len(content),
+                'is_pdf': content[:4] == b'%PDF' if len(content) >= 4 else False,
+                'first_bytes': content[:20].hex() if content else '',
+                'final_url': r.url,
+            })
+        except Exception as e:
+            results.append({'method': 'requests', 'url': encoded_url, 'error': str(e)})
+
+        # Try with urllib
+        try:
+            req2 = urllib.request.Request(
+                encoded_url,
+                headers={'User-Agent': 'Mozilla/5.0 (compatible; AcademIA)'}
+            )
+            with urllib.request.urlopen(req2, timeout=15) as resp:
+                content2 = resp.read()
+                results.append({
+                    'method': 'urllib',
+                    'url': encoded_url,
+                    'status': resp.status,
+                    'content_type': resp.headers.get('Content-Type', ''),
+                    'content_length': len(content2),
+                    'is_pdf': content2[:4] == b'%PDF' if len(content2) >= 4 else False,
+                    'first_bytes': content2[:20].hex() if content2 else '',
+                })
+        except Exception as e:
+            results.append({'method': 'urllib', 'url': encoded_url, 'error': str(e)})
+
+    return JsonResponse({
+        'material_id': pk,
+        'material_name': material.name,
+        'file_type': material.file_type,
+        'raw_url': raw_url,
+        'candidates': candidates,
+        'results': results,
+    }, json_dumps_params={'indent': 2})

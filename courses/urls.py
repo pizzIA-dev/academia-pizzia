@@ -29,6 +29,7 @@ urlpatterns = [
     path('materials/<int:pk>/delete/', views.material_delete, name='material_delete'),
     path('materials/<int:pk>/download/', views.download_material, name='material_download'),
     path('materials/<int:pk>/view/', views.view_material, name='material_view'),
+    path('materials/<int:pk>/debug/', views.debug_material, name='material_debug'),
 
     # Activities CRUD
     path('sessions/<int:session_pk>/activities/create/', views.activity_create, name='activity_create'),
