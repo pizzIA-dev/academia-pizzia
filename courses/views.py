@@ -48,7 +48,10 @@ def course_create(request):
             return redirect('course_detail', pk=course.pk)
     else:
         form = CourseForm()
-    return render(request, 'courses/course_form.html', {'form': form, 'action': 'Crear'})
+    COLORS = ['#0ea5e9','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#84cc16']
+    return render(request, 'courses/course_form.html', {
+        'form': form, 'action': 'Crear',
+        'colors': COLORS, 'current_color': '#0ea5e9'})
 
 
 @login_required
@@ -359,18 +362,19 @@ def course_edit(request, pk):
     if not request.user.is_teacher_of(course):
         messages.error(request, 'Solo el profesor puede editar el curso.')
         return redirect('course_detail', pk=pk)
+    from .forms import CourseForm
+    COLORS = ['#0ea5e9','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#84cc16']
     if request.method == 'POST':
-        from .forms import CourseForm
         form = CourseForm(request.POST, instance=course)
         if form.is_valid():
             form.save()
             messages.success(request, 'Curso actualizado correctamente.')
             return redirect('course_detail', pk=pk)
     else:
-        from .forms import CourseForm
         form = CourseForm(instance=course)
     return render(request, 'courses/course_form.html', {
-        'form': form, 'course': course, 'action': 'Editar'})
+        'form': form, 'course': course, 'action': 'Editar',
+        'colors': COLORS, 'current_color': course.cover_color})
 
 
 @login_required
