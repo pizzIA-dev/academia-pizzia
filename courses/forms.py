@@ -1,20 +1,22 @@
 import os
 from django import forms
-from django.conf import settings
 from .models import Course, Session, SessionMaterial, Activity, Submission
 
-ALLOWED_EXTENSIONS = getattr(settings, 'ALLOWED_FILE_EXTENSIONS',
-    ['.ppt', '.pptx', '.xls', '.xlsx', '.doc', '.docx', '.pdf', '.txt', '.zip'])
+# Auto-detect file type from extension
+EXT_TO_TYPE = {
+    '.ppt': 'ppt', '.pptx': 'ppt',
+    '.xls': 'excel', '.xlsx': 'excel',
+    '.doc': 'word', '.docx': 'word',
+    '.pdf': 'pdf',
+    '.mp4': 'video', '.mov': 'video', '.avi': 'video', '.mkv': 'video',
+    '.zip': 'other', '.rar': 'other',
+    '.txt': 'other', '.csv': 'other',
+    '.png': 'other', '.jpg': 'other', '.jpeg': 'other',
+}
 
-
-def validate_file_extension(file):
-    if file:
-        ext = os.path.splitext(file.name)[1].lower()
-        if ext not in ALLOWED_EXTENSIONS:
-            raise forms.ValidationError(
-                f'Tipo de archivo no permitido: {ext}. '
-                f'Permitidos: {", ".join(ALLOWED_EXTENSIONS)}'
-            )
+def detect_file_type(filename):
+    ext = os.path.splitext(filename)[1].lower()
+    return EXT_TO_TYPE.get(ext, 'other')
 
 
 class CourseForm(forms.ModelForm):
@@ -37,6 +39,21 @@ class CourseForm(forms.ModelForm):
         }
 
 
+class JoinCourseForm(forms.Form):
+    code = forms.CharField(
+        max_length=8,
+        label='Codigo del curso',
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Ej: ABC12345',
+            'class': 'code-input',
+            'style': 'text-transform: uppercase; letter-spacing: 4px; font-size: 1.4rem;'
+        })
+    )
+
+    def clean_code(self):
+        return self.cleaned_data['code'].strip().upper()
+
+
 class SessionForm(forms.ModelForm):
     class Meta:
         model = Session
@@ -49,7 +66,8 @@ class SessionForm(forms.ModelForm):
 
 
 class MaterialUploadForm(forms.ModelForm):
-    file = forms.FileField(validators=[validate_file_extension])
+    # No extension validation — any file allowed
+    file = forms.FileField()
 
     class Meta:
         model = SessionMaterial
@@ -57,6 +75,8 @@ class MaterialUploadForm(forms.ModelForm):
 
 
 class ActivityForm(forms.ModelForm):
+    instruction_file = forms.FileField(required=False)
+
     class Meta:
         model = Activity
         fields = ('title', 'instructions', 'instruction_file', 'due_date',

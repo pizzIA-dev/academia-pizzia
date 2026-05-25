@@ -6,68 +6,116 @@
   <div>
     <div class="breadcrumb">
       <a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a>
-      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-sep">&#8250;</span>
       <a href="{% url 'session_detail' session.pk %}">{{ session.title }}</a>
-      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-sep">&#8250;</span>
       <span>Subir Material</span>
     </div>
     <h1 class="page-title">Subir Material</h1>
+    <p class="page-subtitle">Semana {{ session.week_number }} &bull; {{ session.title }}</p>
   </div>
 </div>
 
-<div class="form-container fade-in">
+<div class="form-container fade-in" style="max-width:580px;">
   <div class="card">
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
-      <div class="form-group">
-        <label class="form-label">Nombre del archivo *</label>
-        <input type="text" name="name" class="form-control" placeholder="Ej: Presentacion Semana 1" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Tipo de archivo</label>
-        <select name="file_type" class="form-control">
-          <option value="ppt">PowerPoint (.ppt, .pptx)</option>
-          <option value="excel">Excel (.xls, .xlsx)</option>
-          <option value="word">Word (.doc, .docx)</option>
-          <option value="pdf">PDF (.pdf)</option>
-          <option value="other">Otro</option>
-        </select>
-      </div>
+      <!-- file_type hidden — auto-detected by JS -->
+      <input type="hidden" name="file_type" id="id_file_type" value="other">
+
       <div class="form-group">
         <label class="form-label">Archivo *</label>
-        <div class="upload-area" onclick="document.getElementById('id_file').click()">
-          <div class="upload-icon">📎</div>
-          <p style="color:var(--text-secondary); font-size:0.9rem;">Click para seleccionar o arrastra el archivo</p>
-          <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.4rem;">PPT, Excel, Word, PDF · Max 20MB</p>
+        <div class="upload-area" onclick="document.getElementById('id_file').click()" id="upload-area">
+          <div class="upload-icon" id="upload-icon">&#128193;</div>
+          <p style="color:var(--text-secondary); font-size:0.9rem;" id="upload-text">
+            Click para seleccionar archivo
+          </p>
+          <p style="font-size:0.78rem; color:var(--text-muted);">
+            PPT, Excel, Word, PDF, ZIP, video — cualquier tipo
+          </p>
         </div>
-        <input type="file" name="file" id="id_file" style="display:none;" accept=".ppt,.pptx,.xls,.xlsx,.doc,.docx,.pdf,.txt,.zip" required>
-        <div id="file-selected" style="margin-top:0.5rem; font-size:0.85rem; color:var(--accent);"></div>
-        {% for error in form.file.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        <input type="file" name="file" id="id_file" style="display:none;" required
+          onchange="handleFileSelect(this)">
       </div>
-      <div style="display:flex; gap:0.75rem;">
-        <button type="submit" id="btn-upload" class="btn btn-primary btn-lg" style="flex:1;">Subir Archivo</button>
+
+      <div class="form-group">
+        <label class="form-label">Nombre del archivo *</label>
+        <input type="text" name="name" id="id_name" class="form-control"
+          placeholder="Nombre que vern los estudiantes" required>
+        <p class="form-hint">Se completa automaticamente al seleccionar un archivo. Puedes editarlo.</p>
+      </div>
+
+      <div id="file-type-display" style="display:none; margin-bottom:1rem;">
+        <span style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">
+          Tipo detectado:
+        </span>
+        <span id="file-type-label" style="font-size:0.85rem; font-weight:700; color:var(--accent); margin-left:0.5rem;"></span>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
+        <button type="submit" id="btn-upload" class="btn btn-primary btn-lg" style="flex:1;">
+          &#11015; Subir Archivo
+        </button>
         <a href="{% url 'session_detail' session.pk %}" class="btn btn-secondary btn-lg">Cancelar</a>
       </div>
     </form>
   </div>
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
-document.getElementById('id_file').addEventListener('change', function() {
-  const name = this.files[0]?.name;
-  if (name) {
-    document.getElementById('file-selected').textContent = '✓ ' + name;
-    // Auto-detect type
-    const ext = name.split('.').pop().toLowerCase();
-    const sel = document.querySelector('select[name=file_type]');
-    if (['ppt','pptx'].includes(ext)) sel.value = 'ppt';
-    else if (['xls','xlsx'].includes(ext)) sel.value = 'excel';
-    else if (['doc','docx'].includes(ext)) sel.value = 'word';
-    else if (ext === 'pdf') sel.value = 'pdf';
-    else sel.value = 'other';
+const EXT_MAP = {
+  ppt: ['ppt','pptx'],
+  excel: ['xls','xlsx'],
+  word: ['doc','docx'],
+  pdf: ['pdf'],
+  video: ['mp4','mov','avi','mkv','webm'],
+  zip: ['zip','rar','7z'],
+};
+const TYPE_ICONS = {
+  ppt: '&#128202;', excel: '&#128200;', word: '&#128196;',
+  pdf: '&#128196;', video: '&#127909;', zip: '&#128230;', other: '&#128193;'
+};
+const TYPE_LABELS = {
+  ppt: 'PowerPoint', excel: 'Excel', word: 'Word',
+  pdf: 'PDF', video: 'Video', zip: 'Archivo comprimido', other: 'Otro'
+};
+
+function detectType(ext) {
+  ext = ext.toLowerCase().replace('.', '');
+  for (const [type, exts] of Object.entries(EXT_MAP)) {
+    if (exts.includes(ext)) return type;
   }
-});
+  return 'other';
+}
+
+function handleFileSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // Auto-detect type
+  const ext = file.name.split('.').pop();
+  const type = detectType(ext);
+
+  // Set hidden file_type
+  document.getElementById('id_file_type').value = type;
+
+  // Auto-fill name (filename without extension)
+  const nameField = document.getElementById('id_name');
+  if (!nameField.value) {
+    nameField.value = file.name.replace(/\.[^/.]+$/, '');
+  }
+
+  // Update upload area UI
+  document.getElementById('upload-icon').innerHTML = TYPE_ICONS[type] || '&#128193;';
+  document.getElementById('upload-text').textContent = file.name;
+  document.getElementById('upload-area').style.borderColor = 'var(--accent)';
+
+  // Show type badge
+  document.getElementById('file-type-display').style.display = 'block';
+  document.getElementById('file-type-label').innerHTML =
+    (TYPE_ICONS[type] || '') + ' ' + (TYPE_LABELS[type] || 'Otro') + ' (.' + ext + ')';
+}
 </script>
-{% endblock %}
 {% endblock %}
