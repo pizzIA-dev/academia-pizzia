@@ -40,7 +40,7 @@
         {% if form.instance.instruction_file %}
           <div class="file-item" style="margin-bottom:0.5rem;">
             <div class="file-icon file-icon-pdf">DOC</div>
-            <div class="file-name" style="flex:1;">Archivo actual: {{ form.instance.instruction_file.name|split:"/"|last }}</div>
+            <div class="file-name" style="flex:1;">Archivo actual: {{ form.instance.instruction_file.name }}</div>
             <a href="{{ form.instance.instruction_file.url }}" target="_blank" class="btn btn-secondary btn-sm">Ver</a>
           </div>
           <p style="font-size:0.8rem; color:var(--text-muted);">Sube un nuevo archivo para reemplazar el actual.</p>
