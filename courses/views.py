@@ -573,15 +573,24 @@ def view_material(request, pk):
         return response
     except Exception as e:
         error_msg = str(e)[:120]
+        raw_url = getattr(material.file, 'url', 'URL no disponible')
         html = f"""<!DOCTYPE html><html>
-<body style="background:#111;color:#ccc;font-family:sans-serif;
+<body style="background:#1a1a2e;font-family:sans-serif;
              display:flex;align-items:center;justify-content:center;
-             height:100vh;flex-direction:column;gap:1rem;margin:0;">
-  <p style="font-size:1rem;">No se pudo cargar el archivo en linea.</p>
-  <p style="font-size:0.75rem;opacity:0.5;">{error_msg}</p>
+             height:100vh;flex-direction:column;gap:1rem;margin:0;padding:1rem;">
+  <p style="font-size:1.1rem;color:#f97316;font-weight:600;">
+    Error al cargar el archivo
+  </p>
+  <p style="font-size:0.8rem;color:#fca5a5;background:#450a0a;
+            padding:.5rem 1rem;border-radius:6px;max-width:400px;word-break:break-all;">
+    {error_msg}
+  </p>
+  <p style="font-size:0.7rem;color:#888;max-width:400px;word-break:break-all;">
+    URL: {raw_url[:100]}
+  </p>
   <a href="/materials/{pk}/download/"
-     style="background:#0ea5e9;color:#fff;padding:.6rem 1.4rem;
-            border-radius:8px;text-decoration:none;font-weight:600;">
+     style="background:#0ea5e9;color:#fff;padding:.7rem 1.6rem;
+            border-radius:8px;text-decoration:none;font-weight:600;margin-top:.5rem;">
     Descargar archivo
   </a>
 </body></html>"""
