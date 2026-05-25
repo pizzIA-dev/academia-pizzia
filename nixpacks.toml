@@ -1,8 +1,0 @@
-[variables]
-DJANGO_SETTINGS_MODULE = "educlass.settings.production"
-
-[phases.setup]
-nixPkgs = ["python312", "postgresql"]
-
-[phases.install]
-cmds = ["pip install -r requirements.txt"]
