@@ -184,7 +184,7 @@ class Submission(models.Model):
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='submissions')
-    file = models.FileField(upload_to=submission_upload_path, verbose_name='Archivo de entrega', null=True, blank=True)
+    file = models.FileField(upload_to=submission_upload_path, verbose_name='Archivo de entrega', null=True, blank=True, max_length=500)
     comment = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
     grade = models.CharField(max_length=50, blank=True, null=True)
@@ -255,7 +255,7 @@ def submission_file_upload_path(instance, filename):
 
 class SubmissionFile(models.Model):
     submission    = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='files')
-    file          = models.FileField(upload_to=submission_file_upload_path)
+    file          = models.FileField(upload_to=submission_file_upload_path, max_length=500)
     original_name = models.CharField(max_length=255, blank=True)
     uploaded_at   = models.DateTimeField(auto_now_add=True)
 
