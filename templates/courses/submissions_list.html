@@ -54,7 +54,22 @@
             </td>
             <td style="color:var(--text-secondary); font-size:0.85rem;">{{ sub.submitted_at|date:"d/m/Y H:i" }}</td>
             <td>
-              <a href="{{ sub.file.url }}" target="_blank" class="btn btn-secondary btn-sm">📎 Ver</a>
+              {% if sub.files.exists %}
+                <div style="display:flex;flex-wrap:wrap;gap:.25rem;">
+                  {% for sf in sub.files.all %}
+                  <a href="{% url 'submission_file_download' sf.pk %}"
+                    class="btn btn-secondary btn-sm"
+                    style="font-size:.74rem;padding:.18rem .45rem;">
+                    {{ sf.file_type_label }}
+                  </a>
+                  {% endfor %}
+                </div>
+              {% elif sub.file %}
+                <a href="{{ sub.file.url }}" target="_blank"
+                  class="btn btn-secondary btn-sm">Ver</a>
+              {% else %}
+                <span style="color:rgba(255,255,255,.3);font-size:.8rem;">—</span>
+              {% endif %}
             </td>
             <td>
               {% if sub.is_graded %}
