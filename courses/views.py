@@ -989,24 +989,33 @@ def delete_submission_file(request, pk):
 @login_required
 def resubmit_activity(request, pk):
     """Add new files to an existing submission (only before due_date)."""
+    import traceback as _tb
     from .models import SubmissionFile
+    from django.db import models as _dm
+
+    # Only accept POST
+    if request.method != 'POST':
+        return redirect('activity_detail', pk=pk)
+
     activity = get_object_or_404(Activity, pk=pk)
+    # Prefetch related to avoid FK chain issues in upload_to
+    activity = Activity.objects.select_related('session__course').get(pk=pk)
     user = request.user
 
     if user.can_manage(activity.session.course):
         messages.error(request, 'Los profesores no pueden entregar actividades.')
         return redirect('activity_detail', pk=pk)
 
-    # Block if past due_date
     if activity.due_date and timezone.now() > activity.due_date:
         messages.error(request, 'La fecha límite ha pasado. No puedes reentregar.')
         return redirect('activity_detail', pk=pk)
 
     submission = get_object_or_404(
-        Submission, activity=activity, student=user)
+        Submission.objects.select_related('student', 'activity__session__course'),
+        activity=activity, student=user)
 
-    if request.method == 'POST':
-        files = request.FILES.getlist('files')
+    try:
+        files   = request.FILES.getlist('files')
         comment = request.POST.get('comment', '').strip()
 
         if files:
@@ -1014,10 +1023,17 @@ def resubmit_activity(request, pk):
                 SubmissionFile.objects.create(
                     submission=submission, file=f, original_name=f.name)
             messages.success(request, f'{len(files)} archivo(s) agregado(s) a tu entrega.')
-        if comment:
+
+        if comment != (submission.comment or '').strip():
             submission.comment = comment
             submission.save(update_fields=['comment'])
-        if not files and not comment:
+            if not files:
+                messages.success(request, 'Comentario actualizado.')
+
+        if not files and comment == (submission.comment or '').strip():
             messages.info(request, 'No se realizaron cambios.')
+
+    except Exception as e:
+        messages.error(request, f'Error al guardar: {e}')
 
     return redirect('activity_detail', pk=pk)
