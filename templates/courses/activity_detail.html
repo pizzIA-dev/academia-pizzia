@@ -13,9 +13,9 @@
     </div>
     <h1 class="page-title">{{ activity.title }}</h1>
     <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-top:0.4rem;">
-      <span class="activity-due {% if now > activity.due_date %}overdue{% endif %}">
+      <span class="activity-due {% if activity.due_date and now > activity.due_date %}overdue{% endif %}">
         &#9200; Entrega: {{ activity.due_date|date:"d/m/Y H:i" }}
-        {% if now > activity.due_date %} (Vencida){% endif %}
+        {% if activity.due_date and now > activity.due_date %} (Vencida){% endif %}
       </span>
       <span style="font-size:0.82rem; color:var(--text-muted);">
         Nota:
@@ -95,33 +95,134 @@
       {% elif sub_form %}
         <div class="card">
           <h3 class="section-title" style="margin-bottom:1rem;">&#128228; Entregar Actividad</h3>
-          {% if now > activity.due_date %}
+          {% if activity.due_date and now > activity.due_date %}
             <div class="alert alert-warning" style="margin-bottom:1rem;">
               &#9888; La fecha limite ha pasado, pero aun puedes entregar.
             </div>
           {% endif %}
-          <form method="POST" enctype="multipart/form-data">
+          <form method="POST" enctype="multipart/form-data" id="submission-form">
             {% csrf_token %}
+
+            <!-- Drop Zone -->
             <div class="form-group">
-              <label class="form-label">Tu archivo de respuesta *</label>
-              <div class="upload-area" onclick="document.getElementById('id_sub_file').click()">
-                <div class="upload-icon">&#128193;</div>
-                <p style="color:var(--text-secondary); font-size:0.9rem;">Click para seleccionar</p>
-                <p style="font-size:0.78rem; color:var(--text-muted);">PPT, Excel, Word, PDF · Max 20MB</p>
+              <label class="form-label">Archivos de entrega * <span style="font-weight:400;color:rgba(255,255,255,.4);font-size:.8rem;">(puedes subir varios)</span></label>
+              <div id="sub-drop-zone"
+                onclick="document.getElementById('sub-files-input').click()"
+                ondragover="event.preventDefault();this.style.borderColor='#38bdf8';"
+                ondragleave="this.style.borderColor='';"
+                ondrop="handleSubDrop(event)"
+                style="border:2px dashed rgba(255,255,255,.2);border-radius:12px;padding:2rem;
+                       text-align:center;cursor:pointer;transition:.2s;min-height:100px;
+                       display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                <div style="font-size:2.5rem;margin-bottom:.5rem;">📂</div>
+                <div style="color:rgba(255,255,255,.5);font-size:.9rem;">
+                  Arrastra archivos aquí o <span style="color:#38bdf8;">haz clic para seleccionar</span>
+                </div>
+                <div style="color:rgba(255,255,255,.3);font-size:.78rem;margin-top:.3rem;">
+                  PDF, Word, Excel, PPT, ZIP, imágenes · Múltiples archivos permitidos
+                </div>
               </div>
-              <input type="file" name="file" id="id_sub_file" style="display:none;"
-                accept=".ppt,.pptx,.xls,.xlsx,.doc,.docx,.pdf,.txt,.zip" required>
-              <div id="sub-file-name" style="margin-top:0.5rem; font-size:0.85rem; color:var(--accent);"></div>
+              <input type="file" name="files" id="sub-files-input"
+                multiple style="display:none"
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.jpg,.jpeg,.png,.mp4,.mp3">
             </div>
+
+            <!-- File list preview -->
+            <div id="sub-file-list" style="display:none;margin-bottom:1rem;">
+              <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:.5rem;">
+                Archivos seleccionados:
+              </div>
+              <div id="sub-file-items" style="display:flex;flex-direction:column;gap:.4rem;"></div>
+            </div>
+
+            <!-- Comment -->
             <div class="form-group">
               <label class="form-label">Comentario (opcional)</label>
-              <textarea name="comment" class="form-control" rows="2"
+              <textarea name="comment" rows="3" class="form-control"
                 placeholder="Comentario para el profesor..."></textarea>
             </div>
-            <button type="submit" id="btn-submit-activity" class="btn btn-primary btn-block btn-lg">
-              &#128228; Entregar Actividad
+
+            <button type="submit" class="btn btn-primary" style="width:100%;font-size:1rem;padding:.8rem;" id="sub-submit-btn">
+              📤 Entregar Actividad
             </button>
           </form>
+
+          <script>
+          var subFiles = new DataTransfer();
+
+          document.getElementById('sub-files-input').addEventListener('change', function() {
+            for (var i = 0; i < this.files.length; i++) addSubFile(this.files[i]);
+            renderSubFiles();
+          });
+
+          function handleSubDrop(e) {
+            e.preventDefault();
+            document.getElementById('sub-drop-zone').style.borderColor = '';
+            var files = e.dataTransfer.files;
+            for (var i = 0; i < files.length; i++) addSubFile(files[i]);
+            renderSubFiles();
+          }
+
+          function addSubFile(f) {
+            // avoid duplicates by name
+            var existing = Array.from(subFiles.files).map(function(x){ return x.name; });
+            if (!existing.includes(f.name)) subFiles.items.add(f);
+          }
+
+          function removeSubFile(name) {
+            var dt = new DataTransfer();
+            Array.from(subFiles.files).forEach(function(f) {
+              if (f.name !== name) dt.items.add(f);
+            });
+            subFiles = dt;
+            renderSubFiles();
+          }
+
+          function fmtSize(b) {
+            if (b < 1024) return b + ' B';
+            if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+            return (b/1048576).toFixed(1) + ' MB';
+          }
+
+          function renderSubFiles() {
+            var list = document.getElementById('sub-file-list');
+            var items = document.getElementById('sub-file-items');
+            var input = document.getElementById('sub-files-input');
+            var drop = document.getElementById('sub-drop-zone');
+            var files = subFiles.files;
+
+            // Sync input
+            input.files = subFiles.files;
+
+            if (files.length === 0) {
+              list.style.display = 'none';
+              drop.style.borderColor = '';
+              return;
+            }
+
+            list.style.display = 'block';
+            drop.style.borderColor = 'rgba(56,189,248,.4)';
+            items.innerHTML = '';
+            Array.from(files).forEach(function(f) {
+              var ext = f.name.split('.').pop().toUpperCase();
+              var el = document.createElement('div');
+              el.style.cssText = 'display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.05);border-radius:8px;padding:.5rem .8rem;';
+              el.innerHTML =
+                '<span style="background:rgba(56,189,248,.2);color:#38bdf8;border-radius:4px;padding:.15rem .4rem;font-size:.72rem;font-weight:700;">' + ext + '</span>' +
+                '<span style="flex:1;color:#fff;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + f.name + '</span>' +
+                '<span style="color:rgba(255,255,255,.4);font-size:.78rem;">' + fmtSize(f.size) + '</span>' +
+                '<button type="button" onclick="removeSubFile(\'' + f.name.replace(/'/g,"\\'") + '\')" ' +
+                'style="background:none;border:none;color:rgba(239,68,68,.7);cursor:pointer;font-size:1rem;padding:0 .2rem;">×</button>';
+              items.appendChild(el);
+            });
+          }
+
+          document.getElementById('submission-form').addEventListener('submit', function() {
+            if (subFiles.files.length === 0) return; // browser will validate
+            document.getElementById('sub-submit-btn').disabled = true;
+            document.getElementById('sub-submit-btn').textContent = 'Entregando...';
+          });
+          </script>
         </div>
       {% endif %}
     </div>

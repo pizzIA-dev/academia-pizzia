@@ -95,4 +95,31 @@
     </form>
   </div>
 </div>
+
+{% if submission.files.exists %}
+<div class="card" style="margin-bottom:1rem;padding:1.2rem;">
+  <h4 style="margin:0 0 .8rem;color:#fff;font-size:.95rem;">📎 Archivos entregados ({{ submission.files.count }})</h4>
+  {% for sf in submission.files.all %}
+  <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem 0;
+    border-bottom:1px solid rgba(255,255,255,.06);">
+    <span style="background:rgba(56,189,248,.15);color:#38bdf8;border-radius:4px;
+      padding:.2rem .5rem;font-size:.75rem;font-weight:700;">
+      {{ sf.file_type_label }}
+    </span>
+    <span style="flex:1;color:#fff;font-size:.88rem;">{{ sf.original_name }}</span>
+    <a href="{{ sf.file.url }}" target="_blank" class="btn btn-secondary btn-sm">
+      ↓ Descargar
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% elif submission.file %}
+<div class="card" style="margin-bottom:1rem;padding:1.2rem;">
+  <h4 style="margin:0 0 .5rem;color:#fff;font-size:.95rem;">📎 Archivo entregado</h4>
+  <a href="{{ submission.file.url }}" target="_blank" class="btn btn-secondary btn-sm">
+    ↓ Descargar archivo
+  </a>
+</div>
+{% endif %}
+
 {% endblock %}

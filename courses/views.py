@@ -297,15 +297,27 @@ def activity_detail(request, pk):
         user_submission = Submission.objects.filter(activity=activity, student=user).first()
         if not user_submission:
             if request.method == 'POST':
-                file = request.FILES.get('file')
+                files = request.FILES.getlist('files')
                 comment = request.POST.get('comment', '')
-                if file:
-                    Submission.objects.create(
-                        activity=activity, student=user, file=file, comment=comment)
-                    messages.success(request, 'Actividad entregada exitosamente.')
+                if not files:
+                    # fallback: try single 'file' field
+                    single = request.FILES.get('file')
+                    if single:
+                        files = [single]
+                if files:
+                    from .models import SubmissionFile
+                    submission = Submission.objects.create(
+                        activity=activity, student=user,
+                        file=None, comment=comment)
+                    for f in files:
+                        SubmissionFile.objects.create(
+                            submission=submission,
+                            file=f,
+                            original_name=f.name)
+                    messages.success(request, f'Entrega realizada con {len(files)} archivo(s).')
                     return redirect('activity_detail', pk=pk)
                 else:
-                    messages.error(request, 'Debes adjuntar un archivo.')
+                    messages.error(request, 'Debes adjuntar al menos un archivo.')
             sub_form = True
     return render(request, 'courses/activity_detail.html', {
         'activity': activity, 'session': session, 'course': course,

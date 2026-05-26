@@ -184,7 +184,7 @@ class Submission(models.Model):
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='submissions')
-    file = models.FileField(upload_to=submission_upload_path, verbose_name='Archivo de entrega')
+    file = models.FileField(upload_to=submission_upload_path, verbose_name='Archivo de entrega', null=True, blank=True)
     comment = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
     grade = models.CharField(max_length=50, blank=True, null=True)
@@ -246,3 +246,30 @@ class ClassRecording(models.Model):
     @property
     def source_color(self):
         return {'drive':'#4285F4','youtube':'#FF0000','zoom':'#2D8CFF','meet':'#00897B','other':'#6366f1'}.get(self.source, '#6366f1')
+
+
+def submission_file_upload_path(instance, filename):
+    sub = instance.submission
+    return f'academIA/submissions/{sub.activity.session.course.id}/{sub.activity.id}/{sub.student.id}/{filename}'
+
+
+class SubmissionFile(models.Model):
+    submission    = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='files')
+    file          = models.FileField(upload_to=submission_file_upload_path)
+    original_name = models.CharField(max_length=255, blank=True)
+    uploaded_at   = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.original_name or str(self.file)
+
+    @property
+    def extension(self):
+        import os as _os
+        return _os.path.splitext(self.original_name or str(self.file))[1].lower().lstrip('.')
+
+    @property
+    def file_type_label(self):
+        ext = self.extension
+        labels = {'pdf':'PDF','doc':'DOC','docx':'DOCX','ppt':'PPT','pptx':'PPTX',
+                  'xls':'XLS','xlsx':'XLSX','zip':'ZIP','mp4':'VIDEO','mp3':'AUDIO'}
+        return labels.get(ext, ext.upper() or 'FILE')
