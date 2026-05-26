@@ -319,10 +319,16 @@ def activity_detail(request, pk):
                 else:
                     messages.error(request, 'Debes adjuntar al menos un archivo.')
             sub_form = True
+    # can_resubmit: student can modify submission only before due_date
+    can_resubmit = (
+        not can_manage and user_submission is not None and
+        (not activity.due_date or timezone.now() <= activity.due_date)
+    )
     return render(request, 'courses/activity_detail.html', {
         'activity': activity, 'session': session, 'course': course,
         'can_manage': can_manage, 'user_submission': user_submission,
         'sub_form': sub_form, 'now': timezone.now(),
+        'can_resubmit': can_resubmit,
     })
 
 
@@ -950,3 +956,68 @@ def submission_file_download(request, pk):
         return resp
     except Exception as e:
         return HttpResponse(f'Error al descargar: {e}', status=502)
+
+
+@login_required
+def delete_submission_file(request, pk):
+    """Remove one file from a student's submission (only before due_date)."""
+    from .models import SubmissionFile
+    sf = get_object_or_404(SubmissionFile, pk=pk)
+    sub = sf.submission
+    activity = sub.activity
+
+    if request.user != sub.student:
+        messages.error(request, 'Sin permiso.')
+        return redirect('activity_detail', pk=activity.pk)
+
+    # Block if past due_date
+    if activity.due_date and timezone.now() > activity.due_date:
+        messages.error(request, 'La fecha límite ha pasado. No puedes modificar tu entrega.')
+        return redirect('activity_detail', pk=activity.pk)
+
+    if request.method == 'POST':
+        try:
+            sf.file.delete(save=False)   # remove from Cloudinary
+        except Exception:
+            pass
+        sf.delete()
+        messages.success(request, 'Archivo eliminado de tu entrega.')
+
+    return redirect('activity_detail', pk=activity.pk)
+
+
+@login_required
+def resubmit_activity(request, pk):
+    """Add new files to an existing submission (only before due_date)."""
+    from .models import SubmissionFile
+    activity = get_object_or_404(Activity, pk=pk)
+    user = request.user
+
+    if user.can_manage(activity.session.course):
+        messages.error(request, 'Los profesores no pueden entregar actividades.')
+        return redirect('activity_detail', pk=pk)
+
+    # Block if past due_date
+    if activity.due_date and timezone.now() > activity.due_date:
+        messages.error(request, 'La fecha límite ha pasado. No puedes reentregar.')
+        return redirect('activity_detail', pk=pk)
+
+    submission = get_object_or_404(
+        Submission, activity=activity, student=user)
+
+    if request.method == 'POST':
+        files = request.FILES.getlist('files')
+        comment = request.POST.get('comment', '').strip()
+
+        if files:
+            for f in files:
+                SubmissionFile.objects.create(
+                    submission=submission, file=f, original_name=f.name)
+            messages.success(request, f'{len(files)} archivo(s) agregado(s) a tu entrega.')
+        if comment:
+            submission.comment = comment
+            submission.save(update_fields=['comment'])
+        if not files and not comment:
+            messages.info(request, 'No se realizaron cambios.')
+
+    return redirect('activity_detail', pk=pk)

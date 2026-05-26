@@ -51,4 +51,6 @@ urlpatterns = [
     path('activities/<int:activity_pk>/submissions/', views.submissions_list, name='submissions_list'),
     path('submissions/<int:pk>/grade/', views.grade_submission, name='grade_submission'),
     path('submission-files/<int:pk>/download/', views.submission_file_download, name='submission_file_download'),
+    path('submission-files/<int:pk>/delete/', views.delete_submission_file, name='delete_submission_file'),
+    path('activities/<int:pk>/resubmit/', views.resubmit_activity, name='resubmit_activity'),
 ]

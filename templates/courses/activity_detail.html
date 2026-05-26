@@ -85,17 +85,82 @@
               <div class="file-meta">{{ user_submission.submitted_at|date:"d/m/Y H:i" }}</div>
             </div>
             {% if user_submission.files.exists %}
-          <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem;">
+          <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem;" id="submitted-files-list">
             {% for sf in user_submission.files.all %}
             <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.04);border-radius:8px;padding:.5rem .8rem;">
               <span style="background:rgba(56,189,248,.15);color:#38bdf8;border-radius:4px;padding:.15rem .4rem;font-size:.72rem;font-weight:700;">{{ sf.file_type_label }}</span>
               <span style="flex:1;color:#fff;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sf.original_name }}</span>
-              <a href="{% url 'submission_file_download' sf.pk %}" target="_blank" class="btn btn-secondary btn-sm" style="font-size:.78rem;padding:.25rem .6rem;">↓</a>
+              <a href="{% url 'submission_file_download' sf.pk %}" class="btn btn-secondary btn-sm" style="font-size:.78rem;padding:.25rem .6rem;">↓</a>
+              {% if can_resubmit %}
+              <form method="POST" action="{% url 'delete_submission_file' sf.pk %}"
+                onsubmit="return confirm('¿Eliminar este archivo de tu entrega?')" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25);
+                  color:#f87171;border-radius:6px;padding:.2rem .5rem;cursor:pointer;font-size:.82rem;line-height:1;">✕</button>
+              </form>
+              {% endif %}
             </div>
             {% endfor %}
           </div>
           {% elif user_submission.file %}
           <a href="{{ user_submission.file.url }}" target="_blank" class="btn btn-secondary btn-sm">Ver archivo</a>
+          {% endif %}
+
+          {# ── Reentregar button + form ── #}
+          {% if can_resubmit %}
+          <div style="margin-top:.5rem;">
+            <button onclick="toggleResubmit()" id="resubmit-toggle-btn"
+              style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.35);
+                color:#a5b4fc;border-radius:8px;padding:.4rem 1rem;cursor:pointer;font-size:.85rem;font-weight:600;">
+              ✏️ Reentregar / Agregar archivos
+            </button>
+
+            <div id="resubmit-form" style="display:none;margin-top:.8rem;">
+              <form method="POST" enctype="multipart/form-data" action="{% url 'resubmit_activity' activity.pk %}" id="resubmit-form-el">
+                {% csrf_token %}
+
+                <div id="resub-drop-zone"
+                  onclick="document.getElementById('resub-files-input').click()"
+                  ondragover="event.preventDefault();this.style.borderColor='#818cf8';"
+                  ondragleave="this.style.borderColor='';"
+                  ondrop="handleResubDrop(event)"
+                  style="border:2px dashed rgba(129,140,248,.3);border-radius:10px;padding:1.2rem;
+                         text-align:center;cursor:pointer;transition:.2s;margin-bottom:.6rem;">
+                  <div style="font-size:1.8rem;">📂</div>
+                  <div style="color:rgba(255,255,255,.45);font-size:.85rem;">
+                    Arrastra o <span style="color:#818cf8;">selecciona archivos</span> para agregar
+                  </div>
+                </div>
+                <input type="file" name="files" id="resub-files-input" multiple style="display:none">
+
+                <div id="resub-file-list" style="display:none;margin-bottom:.6rem;">
+                  <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:.4rem;">Nuevos archivos a agregar:</div>
+                  <div id="resub-file-items" style="display:flex;flex-direction:column;gap:.3rem;"></div>
+                </div>
+
+                <textarea name="comment" rows="2" class="form-control"
+                  placeholder="Actualizar comentario (opcional)..."
+                  style="margin-bottom:.6rem;">{{ user_submission.comment }}</textarea>
+
+                <div style="display:flex;gap:.6rem;">
+                  <button type="submit" id="resub-submit-btn"
+                    style="flex:1;background:linear-gradient(135deg,#6366f1,#818cf8);border:none;
+                           color:#fff;border-radius:8px;padding:.55rem;cursor:pointer;font-size:.88rem;font-weight:600;">
+                    ✅ Guardar cambios
+                  </button>
+                  <button type="button" onclick="toggleResubmit()"
+                    style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+                           color:rgba(255,255,255,.6);border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-size:.88rem;">
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+          {% elif activity.due_date %}
+          <div style="margin-top:.5rem;font-size:.78rem;color:rgba(239,68,68,.6);">
+            🔒 Fecha límite pasada — no se puede reentregar
+          </div>
           {% endif %}
           </div>
           {% if user_submission.comment %}
