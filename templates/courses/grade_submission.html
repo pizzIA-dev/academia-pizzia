@@ -40,9 +40,22 @@
         <p style="font-size:0.9rem; color:var(--text-secondary); font-style:italic;">"{{ submission.comment }}"</p>
       </div>
     {% endif %}
+    {% if submission.files.exists %}
+    <div style="margin-top:.8rem;">
+      <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:.5rem;">📎 Archivos entregados ({{ submission.files.count }}):</div>
+      {% for sf in submission.files.all %}
+      <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.04);border-radius:8px;padding:.5rem .8rem;margin-bottom:.4rem;">
+        <span style="background:rgba(56,189,248,.15);color:#38bdf8;border-radius:4px;padding:.15rem .4rem;font-size:.72rem;font-weight:700;">{{ sf.file_type_label }}</span>
+        <span style="flex:1;color:#fff;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sf.original_name }}</span>
+        <a href="{{ sf.file.url }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size:.8rem;">↓ Descargar</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% elif submission.file %}
     <a href="{{ submission.file.url }}" target="_blank" class="btn btn-primary btn-block" style="margin-top:0.5rem;">
       &#11015; Ver Archivo Entregado
     </a>
+    {% endif %}
   </div>
 
   <!-- Formulario de calificacion -->

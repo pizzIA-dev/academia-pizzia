@@ -84,7 +84,19 @@
               <div class="file-name">Tu entrega</div>
               <div class="file-meta">{{ user_submission.submitted_at|date:"d/m/Y H:i" }}</div>
             </div>
-            <a href="{{ user_submission.file.url }}" target="_blank" class="btn btn-secondary btn-sm">Ver archivo</a>
+            {% if user_submission.files.exists %}
+          <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem;">
+            {% for sf in user_submission.files.all %}
+            <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.04);border-radius:8px;padding:.5rem .8rem;">
+              <span style="background:rgba(56,189,248,.15);color:#38bdf8;border-radius:4px;padding:.15rem .4rem;font-size:.72rem;font-weight:700;">{{ sf.file_type_label }}</span>
+              <span style="flex:1;color:#fff;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sf.original_name }}</span>
+              <a href="{{ sf.file.url }}" target="_blank" class="btn btn-secondary btn-sm" style="font-size:.78rem;padding:.25rem .6rem;">↓</a>
+            </div>
+            {% endfor %}
+          </div>
+          {% elif user_submission.file %}
+          <a href="{{ user_submission.file.url }}" target="_blank" class="btn btn-secondary btn-sm">Ver archivo</a>
+          {% endif %}
           </div>
           {% if user_submission.comment %}
             <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.5rem;">
