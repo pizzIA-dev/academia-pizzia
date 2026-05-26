@@ -162,6 +162,73 @@
             🔒 Fecha límite pasada — no se puede reentregar
           </div>
           {% endif %}
+
+<script>
+/* ── Reentregar JS ── */
+function toggleResubmit() {
+  var form = document.getElementById('resubmit-form');
+  var btn  = document.getElementById('resubmit-toggle-btn');
+  if (!form) return;
+  var showing = form.style.display !== 'none';
+  form.style.display = showing ? 'none' : 'block';
+  if (btn) btn.textContent = showing ? '✏️ Reentregar / Agregar archivos' : '✕ Ocultar';
+}
+
+var resubFiles = new DataTransfer();
+
+document.addEventListener('DOMContentLoaded', function() {
+  var inp = document.getElementById('resub-files-input');
+  if (!inp) return;
+  inp.addEventListener('change', function() {
+    for (var i = 0; i < this.files.length; i++) resubAddFile(this.files[i]);
+    resubRender();
+  });
+});
+
+function handleResubDrop(e) {
+  e.preventDefault();
+  var zone = document.getElementById('resub-drop-zone');
+  if (zone) zone.style.borderColor = '';
+  var files = e.dataTransfer.files;
+  for (var i = 0; i < files.length; i++) resubAddFile(files[i]);
+  resubRender();
+}
+
+function resubAddFile(f) {
+  var existing = Array.from(resubFiles.files).map(function(x){ return x.name; });
+  if (!existing.includes(f.name)) resubFiles.items.add(f);
+}
+
+function resubRender() {
+  var list  = document.getElementById('resub-file-list');
+  var items = document.getElementById('resub-file-items');
+  var inp   = document.getElementById('resub-files-input');
+  if (!list || !items || !inp) return;
+  inp.files = resubFiles.files;
+  if (resubFiles.files.length === 0) { list.style.display = 'none'; return; }
+  list.style.display = 'block';
+  items.innerHTML = '';
+  Array.from(resubFiles.files).forEach(function(f) {
+    var ext = f.name.split('.').pop().toUpperCase();
+    var sz  = f.size < 1048576 ? (f.size/1024).toFixed(1)+' KB' : (f.size/1048576).toFixed(1)+' MB';
+    var el  = document.createElement('div');
+    el.style.cssText = 'display:flex;align-items:center;gap:.5rem;background:rgba(99,102,241,.08);border-radius:7px;padding:.4rem .7rem;';
+    el.innerHTML =
+      '<span style="background:rgba(99,102,241,.2);color:#a5b4fc;border-radius:4px;padding:.1rem .35rem;font-size:.7rem;font-weight:700;">' + ext + '</span>' +
+      '<span style="flex:1;color:#fff;font-size:.83rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + f.name + '</span>' +
+      '<span style="color:rgba(255,255,255,.35);font-size:.75rem;">' + sz + '</span>' +
+      '<button type="button" onclick="resubRemove('' + f.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '')" style="background:none;border:none;color:rgba(239,68,68,.7);cursor:pointer;font-size:.9rem;padding:0;">×</button>';
+    items.appendChild(el);
+  });
+}
+
+function resubRemove(name) {
+  var dt = new DataTransfer();
+  Array.from(resubFiles.files).forEach(function(f) { if (f.name !== name) dt.items.add(f); });
+  resubFiles = dt;
+  resubRender();
+}
+</script>
           </div>
           {% if user_submission.comment %}
             <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.5rem;">
