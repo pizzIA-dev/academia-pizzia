@@ -59,184 +59,142 @@
   {% if not can_manage %}
     <div>
       {% if user_submission %}
-        <div class="card" style="border-color: {% if user_submission.is_graded %}rgba(16,185,129,0.4){% else %}rgba(0,198,255,0.3){% endif %};">
-          <h3 class="section-title" style="margin-bottom:1rem;">
-            {% if user_submission.is_graded %}&#9989; Calificado{% else %}&#128228; Entrega Enviada{% endif %}
-          </h3>
-          {% if user_submission.is_graded %}
-            <div class="grade-display" style="margin:1rem 0;">{{ user_submission.grade }}</div>
-            {% if activity.grade_type == 'numeric' %}
-              <div style="text-align:center; color:var(--text-muted); font-size:0.82rem;">
-                de {{ activity.max_grade|floatformat:0 }} puntos
-              </div>
-            {% endif %}
-            {% if user_submission.teacher_comment %}
-              <div style="margin-top:1rem; padding:0.75rem; background:rgba(255,255,255,0.04); border-radius:8px;">
-                <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.3rem;">COMENTARIO DEL EVALUADOR</div>
-                <p style="color:var(--text-secondary); font-size:0.9rem;">{{ user_submission.teacher_comment }}</p>
-              </div>
-            {% endif %}
-          {% endif %}
-          <hr class="divider">
-          <div class="file-item">
-            <div class="file-icon file-icon-other">&#8593;</div>
-            <div style="flex:1;">
-              <div class="file-name">Tu entrega</div>
-              <div class="file-meta">{{ user_submission.submitted_at|date:"d/m/Y H:i" }}</div>
+      <div class="card" style="border-color: {% if user_submission.is_graded %}rgba(16,185,129,0.4){% else %}rgba(0,198,255,0.3){% endif %};">
+        <h3 class="section-title" style="margin-bottom:1rem;">
+          {% if user_submission.is_graded %}&#9989; Calificado{% else %}&#128228; Entrega Enviada{% endif %}
+        </h3>
+
+        {% if user_submission.is_graded %}
+          <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+            <div style="font-size:1.4rem;font-weight:700;color:#4ade80;">
+              {{ user_submission.grade }} / {{ activity.max_grade }} pts
             </div>
-            {% if user_submission.files.exists %}
-          <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem;" id="submitted-files-list">
+            {% if user_submission.teacher_comment %}
+              <p style="color:rgba(255,255,255,.7);font-size:.88rem;margin-top:.4rem;">{{ user_submission.teacher_comment }}</p>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <!-- Metadata row -->
+        <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem;padding-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,.06);">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#818cf8);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#fff;">&#8679;</div>
+          <div>
+            <div style="color:#fff;font-size:.88rem;font-weight:600;">Tu entrega</div>
+            <div style="color:rgba(255,255,255,.4);font-size:.78rem;">{{ user_submission.submitted_at|date:"d/m/Y H:i" }}</div>
+          </div>
+        </div>
+
+        <!-- Files list -->
+        {% if user_submission.files.exists %}
+          <div style="display:flex;flex-direction:column;gap:.35rem;margin-bottom:.8rem;">
             {% for sf in user_submission.files.all %}
-            <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.04);border-radius:8px;padding:.5rem .8rem;">
-              <span style="background:rgba(56,189,248,.15);color:#38bdf8;border-radius:4px;padding:.15rem .4rem;font-size:.72rem;font-weight:700;">{{ sf.file_type_label }}</span>
-              <span style="flex:1;color:#fff;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sf.original_name }}</span>
-              <a href="{% url 'submission_file_download' sf.pk %}" class="btn btn-secondary btn-sm" style="font-size:.78rem;padding:.25rem .6rem;">↓</a>
+            <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.04);border-radius:8px;padding:.45rem .8rem;">
+              <span style="background:rgba(56,189,248,.15);color:#38bdf8;border-radius:4px;padding:.1rem .4rem;font-size:.7rem;font-weight:700;flex-shrink:0;">{{ sf.file_type_label }}</span>
+              <span style="flex:1;color:#fff;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sf.original_name }}</span>
+              <a href="{% url 'submission_file_download' sf.pk %}" class="btn btn-secondary btn-sm" style="font-size:.76rem;padding:.2rem .55rem;flex-shrink:0;">&#11015;</a>
               {% if can_resubmit %}
-              <form method="POST" action="{% url 'delete_submission_file' sf.pk %}"
-                onsubmit="return confirm('¿Eliminar este archivo de tu entrega?')" style="margin:0;">
+              <form method="POST" action="{% url 'delete_submission_file' sf.pk %}" style="margin:0;" onsubmit="return confirm('¿Eliminar este archivo?')">
                 {% csrf_token %}
-                <button type="submit" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25);
-                  color:#f87171;border-radius:6px;padding:.2rem .5rem;cursor:pointer;font-size:.82rem;line-height:1;">✕</button>
+                <button type="submit" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:6px;padding:.2rem .45rem;cursor:pointer;font-size:.8rem;line-height:1;">&#10005;</button>
               </form>
               {% endif %}
             </div>
             {% endfor %}
           </div>
-          {% elif user_submission.file %}
-          <a href="{{ user_submission.file.url }}" target="_blank" class="btn btn-secondary btn-sm">Ver archivo</a>
-          {% endif %}
-
-          {# ── Reentregar button + form ── #}
-          {% if can_resubmit %}
-          <div style="margin-top:.5rem;">
-            <button onclick="toggleResubmit()" id="resubmit-toggle-btn"
-              style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.35);
-                color:#a5b4fc;border-radius:8px;padding:.4rem 1rem;cursor:pointer;font-size:.85rem;font-weight:600;">
-              ✏️ Reentregar / Agregar archivos
-            </button>
-
-            <div id="resubmit-form" style="display:none;margin-top:.8rem;">
-              <form method="POST" enctype="multipart/form-data" action="{% url 'resubmit_activity' activity.pk %}" id="resubmit-form-el">
-                {% csrf_token %}
-
-                <div id="resub-drop-zone"
-                  onclick="document.getElementById('resub-files-input').click()"
-                  ondragover="event.preventDefault();this.style.borderColor='#818cf8';"
-                  ondragleave="this.style.borderColor='';"
-                  ondrop="handleResubDrop(event)"
-                  style="border:2px dashed rgba(129,140,248,.3);border-radius:10px;padding:1.2rem;
-                         text-align:center;cursor:pointer;transition:.2s;margin-bottom:.6rem;">
-                  <div style="font-size:1.8rem;">📂</div>
-                  <div style="color:rgba(255,255,255,.45);font-size:.85rem;">
-                    Arrastra o <span style="color:#818cf8;">selecciona archivos</span> para agregar
-                  </div>
-                </div>
-                <input type="file" name="files" id="resub-files-input" multiple style="display:none">
-
-                <div id="resub-file-list" style="display:none;margin-bottom:.6rem;">
-                  <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:.4rem;">Nuevos archivos a agregar:</div>
-                  <div id="resub-file-items" style="display:flex;flex-direction:column;gap:.3rem;"></div>
-                </div>
-
-                <textarea name="comment" rows="2" class="form-control"
-                  placeholder="Actualizar comentario (opcional)..."
-                  style="margin-bottom:.6rem;">{{ user_submission.comment }}</textarea>
-
-                <div style="display:flex;gap:.6rem;">
-                  <button type="submit" id="resub-submit-btn"
-                    style="flex:1;background:linear-gradient(135deg,#6366f1,#818cf8);border:none;
-                           color:#fff;border-radius:8px;padding:.55rem;cursor:pointer;font-size:.88rem;font-weight:600;">
-                    ✅ Guardar cambios
-                  </button>
-                  <button type="button" onclick="toggleResubmit()"
-                    style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-                           color:rgba(255,255,255,.6);border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-size:.88rem;">
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-            </div>
+        {% elif user_submission.file %}
+          <div style="margin-bottom:.8rem;">
+            <a href="{{ user_submission.file.url }}" target="_blank" class="btn btn-secondary btn-sm">&#11015; Descargar archivo</a>
           </div>
-          {% elif activity.due_date %}
-          <div style="margin-top:.5rem;font-size:.78rem;color:rgba(239,68,68,.6);">
-            🔒 Fecha límite pasada — no se puede reentregar
+        {% else %}
+          <div style="color:rgba(255,255,255,.4);font-size:.85rem;margin-bottom:.8rem;padding:.6rem;background:rgba(255,255,255,.03);border-radius:8px;">
+            Sin archivos adjuntos
           </div>
-          {% endif %}
+        {% endif %}
 
-<script>
-/* ── Reentregar JS ── */
-function toggleResubmit() {
-  var form = document.getElementById('resubmit-form');
-  var btn  = document.getElementById('resubmit-toggle-btn');
-  if (!form) return;
-  var showing = form.style.display !== 'none';
-  form.style.display = showing ? 'none' : 'block';
-  if (btn) btn.textContent = showing ? '✏️ Reentregar / Agregar archivos' : '✕ Ocultar';
-}
+        {% if user_submission.comment %}
+          <p style="font-size:.84rem;color:rgba(255,255,255,.5);margin-bottom:.8rem;">Tu comentario: {{ user_submission.comment }}</p>
+        {% endif %}
 
-var resubFiles = new DataTransfer();
+        <!-- Reentregar section -->
+        {% if can_resubmit %}
+        <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:.8rem;">
+          <button type="button" id="resub-toggle"
+            onclick="var f=document.getElementById('resub-panel');var b=document.getElementById('resub-toggle');if(f.style.display==='none'){f.style.display='block';b.textContent='✕ Ocultar'}else{f.style.display='none';b.textContent='✏️ Reentregar / Agregar archivos'}"
+            style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;border-radius:8px;padding:.4rem 1rem;cursor:pointer;font-size:.84rem;font-weight:600;width:100%;">
+            ✏️ Reentregar / Agregar archivos
+          </button>
 
-document.addEventListener('DOMContentLoaded', function() {
-  var inp = document.getElementById('resub-files-input');
-  if (!inp) return;
-  inp.addEventListener('change', function() {
-    for (var i = 0; i < this.files.length; i++) resubAddFile(this.files[i]);
-    resubRender();
-  });
-});
+          <div id="resub-panel" style="display:none;margin-top:.8rem;">
+            <form method="POST" enctype="multipart/form-data" action="{% url 'resubmit_activity' activity.pk %}">
+              {% csrf_token %}
+              <div id="resub-zone"
+                onclick="document.getElementById('resub-inp').click()"
+                ondragover="event.preventDefault();this.style.borderColor='#818cf8'"
+                ondragleave="this.style.borderColor=''"
+                ondrop="rsHandleDrop(event)"
+                style="border:2px dashed rgba(129,140,248,.3);border-radius:10px;padding:1.2rem;text-align:center;cursor:pointer;transition:.2s;margin-bottom:.6rem;">
+                <div style="font-size:1.6rem;">📂</div>
+                <div style="color:rgba(255,255,255,.45);font-size:.84rem;">Arrastra o <span style="color:#818cf8;">selecciona</span> archivos</div>
+              </div>
+              <input type="file" id="resub-inp" name="files" multiple style="display:none"
+                onchange="for(var i=0;i<this.files.length;i++)rsAdd(this.files[i]);rsRender()">
 
-function handleResubDrop(e) {
-  e.preventDefault();
-  var zone = document.getElementById('resub-drop-zone');
-  if (zone) zone.style.borderColor = '';
-  var files = e.dataTransfer.files;
-  for (var i = 0; i < files.length; i++) resubAddFile(files[i]);
-  resubRender();
-}
+              <div id="resub-list" style="display:none;margin-bottom:.6rem;">
+                <div style="font-size:.76rem;color:rgba(255,255,255,.35);margin-bottom:.3rem;">Nuevos archivos:</div>
+                <div id="resub-items"></div>
+              </div>
 
-function resubAddFile(f) {
-  var existing = Array.from(resubFiles.files).map(function(x){ return x.name; });
-  if (!existing.includes(f.name)) resubFiles.items.add(f);
-}
+              <textarea name="comment" rows="2" class="form-control" style="margin-bottom:.6rem;"
+                placeholder="Actualizar comentario...">{{ user_submission.comment }}</textarea>
 
-function resubRender() {
-  var list  = document.getElementById('resub-file-list');
-  var items = document.getElementById('resub-file-items');
-  var inp   = document.getElementById('resub-files-input');
-  if (!list || !items || !inp) return;
-  inp.files = resubFiles.files;
-  if (resubFiles.files.length === 0) { list.style.display = 'none'; return; }
-  list.style.display = 'block';
-  items.innerHTML = '';
-  Array.from(resubFiles.files).forEach(function(f) {
-    var ext = f.name.split('.').pop().toUpperCase();
-    var sz  = f.size < 1048576 ? (f.size/1024).toFixed(1)+' KB' : (f.size/1048576).toFixed(1)+' MB';
-    var el  = document.createElement('div');
-    el.style.cssText = 'display:flex;align-items:center;gap:.5rem;background:rgba(99,102,241,.08);border-radius:7px;padding:.4rem .7rem;';
-    el.innerHTML =
-      '<span style="background:rgba(99,102,241,.2);color:#a5b4fc;border-radius:4px;padding:.1rem .35rem;font-size:.7rem;font-weight:700;">' + ext + '</span>' +
-      '<span style="flex:1;color:#fff;font-size:.83rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + f.name + '</span>' +
-      '<span style="color:rgba(255,255,255,.35);font-size:.75rem;">' + sz + '</span>' +
-      '<button type="button" onclick="resubRemove('' + f.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '')" style="background:none;border:none;color:rgba(239,68,68,.7);cursor:pointer;font-size:.9rem;padding:0;">×</button>';
-    items.appendChild(el);
-  });
-}
-
-function resubRemove(name) {
-  var dt = new DataTransfer();
-  Array.from(resubFiles.files).forEach(function(f) { if (f.name !== name) dt.items.add(f); });
-  resubFiles = dt;
-  resubRender();
-}
-</script>
+              <div style="display:flex;gap:.5rem;">
+                <button type="submit"
+                  style="flex:1;background:linear-gradient(135deg,#6366f1,#818cf8);border:none;color:#fff;border-radius:8px;padding:.5rem;cursor:pointer;font-size:.86rem;font-weight:600;">
+                  ✅ Guardar cambios
+                </button>
+                <button type="button"
+                  onclick="document.getElementById('resub-panel').style.display='none';document.getElementById('resub-toggle').textContent='✏️ Reentregar / Agregar archivos'"
+                  style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);border-radius:8px;padding:.5rem .9rem;cursor:pointer;font-size:.86rem;">
+                  Cancelar
+                </button>
+              </div>
+            </form>
           </div>
-          {% if user_submission.comment %}
-            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.5rem;">
-              Tu comentario: {{ user_submission.comment }}
-            </p>
-          {% endif %}
         </div>
-      {% elif sub_form %}
+
+        <script>
+        var rsFiles = new DataTransfer();
+        function rsAdd(f){var ex=Array.from(rsFiles.files).map(function(x){return x.name;});if(!ex.includes(f.name))rsFiles.items.add(f);}
+        function rsHandleDrop(e){e.preventDefault();document.getElementById('resub-zone').style.borderColor='';var fs=e.dataTransfer.files;for(var i=0;i<fs.length;i++)rsAdd(fs[i]);rsRender();}
+        function rsRender(){
+          var inp=document.getElementById('resub-inp');
+          var list=document.getElementById('resub-list');
+          var items=document.getElementById('resub-items');
+          if(!inp||!list||!items)return;
+          inp.files=rsFiles.files;
+          if(rsFiles.files.length===0){list.style.display='none';return;}
+          list.style.display='block';items.innerHTML='';
+          Array.from(rsFiles.files).forEach(function(f){
+            var ext=f.name.split('.').pop().toUpperCase();
+            var sz=f.size<1048576?(f.size/1024).toFixed(1)+' KB':(f.size/1048576).toFixed(1)+' MB';
+            var d=document.createElement('div');
+            d.style.cssText='display:flex;align-items:center;gap:.5rem;background:rgba(99,102,241,.08);border-radius:7px;padding:.35rem .6rem;margin-bottom:.3rem;';
+            d.innerHTML='<span style="background:rgba(99,102,241,.2);color:#a5b4fc;border-radius:3px;padding:.1rem .3rem;font-size:.68rem;font-weight:700;">'+ext+'</span>'+
+              '<span style="flex:1;color:#fff;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.name+'</span>'+
+              '<span style="color:rgba(255,255,255,.3);font-size:.74rem;">'+sz+'</span>'+
+              '<button type="button" onclick="rsDel(\''+f.name.replace(/'/g,"\\'")+'\')" style="background:none;border:none;color:rgba(239,68,68,.6);cursor:pointer;padding:0;">×</button>';
+            items.appendChild(d);
+          });
+        }
+        function rsDel(name){var dt=new DataTransfer();Array.from(rsFiles.files).forEach(function(f){if(f.name!==name)dt.items.add(f);});rsFiles=dt;rsRender();}
+        </script>
+
+        {% elif activity.due_date %}
+          <div style="font-size:.78rem;color:rgba(239,68,68,.55);margin-top:.5rem;">&#128274; Fecha límite pasada — no se puede reentregar</div>
+        {% endif %}
+
+      </div>
+{% elif sub_form %}
         <div class="card">
           <h3 class="section-title" style="margin-bottom:1rem;">&#128228; Entregar Actividad</h3>
           {% if activity.due_date and now > activity.due_date %}
