@@ -906,3 +906,47 @@ def request_enrollment(request, pk):
 
     next_url = request.POST.get('next') or request.GET.get('next') or 'course_catalog'
     return redirect(next_url)
+
+
+@login_required
+def submission_file_download(request, pk):
+    """Proxy: download a SubmissionFile through Django (bypasses Cloudinary 401)."""
+    from django.http import HttpResponse
+    from .models import SubmissionFile
+    import os as _os
+    sf = get_object_or_404(SubmissionFile, pk=pk)
+    sub = sf.submission
+    course = sub.activity.session.course
+
+    # Permission: student who submitted OR teacher/moderator
+    if request.user != sub.student and not request.user.can_manage(course):
+        messages.error(request, 'Sin permiso.')
+        return redirect('dashboard')
+
+    file_url = sf.file.url
+    fname = sf.original_name or _os.path.basename(str(sf.file))
+    ext = _os.path.splitext(fname)[1].lower()
+
+    ct_map = {
+        '.pdf':  'application/pdf',
+        '.doc':  'application/msword',
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        '.ppt':  'application/vnd.ms-powerpoint',
+        '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        '.xls':  'application/vnd.ms-excel',
+        '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        '.zip':  'application/zip',
+        '.txt':  'text/plain',
+        '.jpg':  'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+        '.mp4':  'video/mp4',  '.mp3':  'audio/mpeg',
+    }
+    ct = ct_map.get(ext, 'application/octet-stream')
+
+    try:
+        content = _cloudinary_get_bytes(file_url)
+        safe_name = fname.replace('"', "'")
+        resp = HttpResponse(content, content_type=ct)
+        resp['Content-Disposition'] = f'attachment; filename="{safe_name}"'
+        return resp
+    except Exception as e:
+        return HttpResponse(f'Error al descargar: {e}', status=502)

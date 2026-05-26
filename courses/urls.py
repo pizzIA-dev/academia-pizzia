@@ -50,4 +50,5 @@ urlpatterns = [
     # Submissions & Grading
     path('activities/<int:activity_pk>/submissions/', views.submissions_list, name='submissions_list'),
     path('submissions/<int:pk>/grade/', views.grade_submission, name='grade_submission'),
+    path('submission-files/<int:pk>/download/', views.submission_file_download, name='submission_file_download'),
 ]
