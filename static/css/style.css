@@ -902,3 +902,23 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .mat-action-btn:hover { background: rgba(255,255,255,0.15); }
 .mat-action-danger { color: #ef4444; border-color: rgba(239,68,68,0.3); }
 .mat-action-danger:hover { background: rgba(239,68,68,0.15); }
+
+/* ── Lucide Icons ─────────────────────────────────────────── */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  vertical-align: -0.15em;
+  flex-shrink: 0;
+}
+.icon-sm   { width: 0.875rem; height: 0.875rem; }
+.icon-md   { width: 1.25rem;  height: 1.25rem; }
+.icon-lg   { width: 1.5rem;   height: 1.5rem; }
+.icon-xl   { width: 2rem;     height: 2rem; }
+.icon-2xl  { width: 3rem;     height: 3rem; }
+.icon-hero { width: 4rem;     height: 4rem; opacity: 0.7; }
