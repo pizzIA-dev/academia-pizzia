@@ -14,7 +14,7 @@
     <h1 class="page-title">{{ activity.title }}</h1>
     <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-top:0.4rem;">
       <span class="activity-due {% if activity.due_date and now > activity.due_date %}overdue{% endif %}">
-        &#9200; Entrega: {{ activity.due_date|date:"d/m/Y H:i" }}
+        <i data-lucide="clock" class="icon"></i> Entrega: {{ activity.due_date|date:"d/m/Y H:i" }}
         {% if activity.due_date and now > activity.due_date %} (Vencida){% endif %}
       </span>
       <span style="font-size:0.82rem; color:var(--text-muted);">
@@ -28,10 +28,10 @@
   <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
     {% if can_manage %}
       <a href="{% url 'submissions_list' activity.pk %}" class="btn btn-primary btn-sm">
-        &#128203; Entregas ({{ activity.submission_count }})
+        <i data-lucide="clipboard-list" class="icon"></i> Entregas ({{ activity.submission_count }})
       </a>
-      <a href="{% url 'activity_edit' activity.pk %}" class="btn btn-secondary btn-sm">&#9998; Editar</a>
-      <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-danger btn-sm">&#128465;</a>
+      <a href="{% url 'activity_edit' activity.pk %}" class="btn btn-secondary btn-sm"><i data-lucide="pencil" class="icon"></i> Editar</a>
+      <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-danger btn-sm"><i data-lucide="trash-2" class="icon"></i></a>
     {% endif %}
   </div>
 </div>
@@ -39,18 +39,18 @@
 <div style="display:grid; grid-template-columns:1fr {% if not can_manage %}1fr{% endif %}; gap:1.5rem; flex-wrap:wrap;" class="fade-in">
   <div>
     <div class="card" style="margin-bottom:1rem;">
-      <h3 class="section-title" style="margin-bottom:1rem;">&#128203; Instrucciones</h3>
+      <h3 class="section-title" style="margin-bottom:1rem;"><i data-lucide="clipboard-list" class="icon"></i> Instrucciones</h3>
       <div style="white-space:pre-wrap; color:var(--text-secondary); line-height:1.7; font-size:0.93rem;">
         <div style="white-space:pre-wrap;text-indent:0;">{{ activity.instructions|linebreaksbr }}</div>
       </div>
     </div>
     {% if activity.instruction_file %}
       <div class="card">
-        <h3 class="section-title" style="margin-bottom:0.75rem;">&#128206; Archivo de Instrucciones</h3>
+        <h3 class="section-title" style="margin-bottom:0.75rem;"><i data-lucide="paperclip" class="icon"></i> Archivo de Instrucciones</h3>
         <div class="file-item">
           <div class="file-icon file-icon-pdf">DOC</div>
           <div class="file-name" style="flex:1;">Instrucciones - {{ activity.title }}</div>
-          <a href="{% url 'activity_file_download' activity.pk %}" class="btn btn-secondary btn-sm">&#11015; Descargar</a>
+          <a href="{% url 'activity_file_download' activity.pk %}" class="btn btn-secondary btn-sm"><i data-lucide="download" class="icon"></i> Descargar</a>
         </div>
       </div>
     {% endif %}
@@ -61,7 +61,7 @@
       {% if user_submission %}
       <div class="card" style="border-color: {% if user_submission.is_graded %}rgba(16,185,129,0.4){% else %}rgba(0,198,255,0.3){% endif %};">
         <h3 class="section-title" style="margin-bottom:1rem;">
-          {% if user_submission.is_graded %}&#9989; Calificado{% else %}&#128228; Entrega Enviada{% endif %}
+          {% if user_submission.is_graded %}<i data-lucide="check-circle" class="icon"></i> Calificado{% else %}<i data-lucide="upload" class="icon"></i> Entrega Enviada{% endif %}
         </h3>
 
         {% if user_submission.is_graded %}
@@ -77,7 +77,7 @@
 
         <!-- Metadata row -->
         <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem;padding-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,.06);">
-          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#818cf8);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#fff;">&#8679;</div>
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#818cf8);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#fff;"><i data-lucide="arrow-up" class="icon"></i></div>
           <div>
             <div style="color:#fff;font-size:.88rem;font-weight:600;">Tu entrega</div>
             <div style="color:rgba(255,255,255,.4);font-size:.78rem;">{{ user_submission.submitted_at|date:"d/m/Y H:i" }}</div>
@@ -91,11 +91,11 @@
             <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.04);border-radius:8px;padding:.45rem .8rem;">
               <span style="background:rgba(56,189,248,.15);color:#38bdf8;border-radius:4px;padding:.1rem .4rem;font-size:.7rem;font-weight:700;flex-shrink:0;">{{ sf.file_type_label }}</span>
               <span style="flex:1;color:#fff;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sf.original_name }}</span>
-              <a href="{% url 'submission_file_download' sf.pk %}" class="btn btn-secondary btn-sm" style="font-size:.76rem;padding:.2rem .55rem;flex-shrink:0;">&#11015;</a>
+              <a href="{% url 'submission_file_download' sf.pk %}" class="btn btn-secondary btn-sm" style="font-size:.76rem;padding:.2rem .55rem;flex-shrink:0;"><i data-lucide="download" class="icon"></i></a>
               {% if can_resubmit %}
               <form method="POST" action="{% url 'delete_submission_file' sf.pk %}" style="margin:0;" onsubmit="return confirm('¿Eliminar este archivo?')">
                 {% csrf_token %}
-                <button type="submit" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:6px;padding:.2rem .45rem;cursor:pointer;font-size:.8rem;line-height:1;">&#10005;</button>
+                <button type="submit" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:6px;padding:.2rem .45rem;cursor:pointer;font-size:.8rem;line-height:1;"><i data-lucide="x" class="icon"></i></button>
               </form>
               {% endif %}
             </div>
@@ -103,7 +103,7 @@
           </div>
         {% elif user_submission.file %}
           <div style="margin-bottom:.8rem;">
-            <a href="{{ user_submission.file.url }}" target="_blank" class="btn btn-secondary btn-sm">&#11015; Descargar archivo</a>
+            <a href="{{ user_submission.file.url }}" target="_blank" class="btn btn-secondary btn-sm"><i data-lucide="download" class="icon"></i> Descargar archivo</a>
           </div>
         {% else %}
           <div style="color:rgba(255,255,255,.4);font-size:.85rem;margin-bottom:.8rem;padding:.6rem;background:rgba(255,255,255,.03);border-radius:8px;">
@@ -119,9 +119,9 @@
         {% if can_resubmit %}
         <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:.8rem;">
           <button type="button" id="resub-toggle"
-            onclick="var f=document.getElementById('resub-panel');var b=document.getElementById('resub-toggle');if(f.style.display==='none'){f.style.display='block';b.textContent='✕ Ocultar'}else{f.style.display='none';b.textContent='✏️ Reentregar / Agregar archivos'}"
+            onclick="var f=document.getElementById('resub-panel');var b=document.getElementById('resub-toggle');if(f.style.display==='none'){f.style.display='block';b.textContent='<i data-lucide="x" class="icon"></i> Ocultar'}else{f.style.display='none';b.textContent='<i data-lucide="pencil" class="icon"></i> Reentregar / Agregar archivos'}"
             style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;border-radius:8px;padding:.4rem 1rem;cursor:pointer;font-size:.84rem;font-weight:600;width:100%;">
-            ✏️ Reentregar / Agregar archivos
+            <i data-lucide="pencil" class="icon"></i> Reentregar / Agregar archivos
           </button>
 
           <div id="resub-panel" style="display:none;margin-top:.8rem;">
@@ -133,7 +133,7 @@
                 ondragleave="this.style.borderColor=''"
                 ondrop="rsHandleDrop(event)"
                 style="border:2px dashed rgba(129,140,248,.3);border-radius:10px;padding:1.2rem;text-align:center;cursor:pointer;transition:.2s;margin-bottom:.6rem;">
-                <div style="font-size:1.6rem;">📂</div>
+                <div style=""><i data-lucide="folder-open" class="icon"></i></div>
                 <div style="color:rgba(255,255,255,.45);font-size:.84rem;">Arrastra o <span style="color:#818cf8;">selecciona</span> archivos</div>
               </div>
               <input type="file" id="resub-inp" name="files" multiple style="display:none"
@@ -150,10 +150,10 @@
               <div style="display:flex;gap:.5rem;">
                 <button type="submit"
                   style="flex:1;background:linear-gradient(135deg,#6366f1,#818cf8);border:none;color:#fff;border-radius:8px;padding:.5rem;cursor:pointer;font-size:.86rem;font-weight:600;">
-                  ✅ Guardar cambios
+                  <i data-lucide="check-circle" class="icon"></i> Guardar cambios
                 </button>
                 <button type="button"
-                  onclick="document.getElementById('resub-panel').style.display='none';document.getElementById('resub-toggle').textContent='✏️ Reentregar / Agregar archivos'"
+                  onclick="document.getElementById('resub-panel').style.display='none';document.getElementById('resub-toggle').textContent='<i data-lucide="pencil" class="icon"></i> Reentregar / Agregar archivos'"
                   style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);border-radius:8px;padding:.5rem .9rem;cursor:pointer;font-size:.86rem;">
                   Cancelar
                 </button>
@@ -190,16 +190,16 @@
         </script>
 
         {% elif activity.due_date %}
-          <div style="font-size:.78rem;color:rgba(239,68,68,.55);margin-top:.5rem;">&#128274; Fecha límite pasada — no se puede reentregar</div>
+          <div style="font-size:.78rem;color:rgba(239,68,68,.55);margin-top:.5rem;"><i data-lucide="lock" class="icon"></i> Fecha límite pasada — no se puede reentregar</div>
         {% endif %}
 
       </div>
 {% elif sub_form %}
         <div class="card">
-          <h3 class="section-title" style="margin-bottom:1rem;">&#128228; Entregar Actividad</h3>
+          <h3 class="section-title" style="margin-bottom:1rem;"><i data-lucide="upload" class="icon"></i> Entregar Actividad</h3>
           {% if activity.due_date and now > activity.due_date %}
             <div class="alert alert-warning" style="margin-bottom:1rem;">
-              &#9888; La fecha limite ha pasado, pero aun puedes entregar.
+              <i data-lucide="alert-triangle" class="icon"></i> La fecha limite ha pasado, pero aun puedes entregar.
             </div>
           {% endif %}
           <form method="POST" enctype="multipart/form-data" id="submission-form">
@@ -216,7 +216,7 @@
                 style="border:2px dashed rgba(255,255,255,.2);border-radius:12px;padding:2rem;
                        text-align:center;cursor:pointer;transition:.2s;min-height:100px;
                        display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                <div style="font-size:2.5rem;margin-bottom:.5rem;">📂</div>
+                <div style="margin-bottom:.5rem;"><i data-lucide="folder-open" class="icon"></i></div>
                 <div style="color:rgba(255,255,255,.5);font-size:.9rem;">
                   Arrastra archivos aquí o <span style="color:#38bdf8;">haz clic para seleccionar</span>
                 </div>
@@ -245,7 +245,7 @@
             </div>
 
             <button type="submit" class="btn btn-primary" style="width:100%;font-size:1rem;padding:.8rem;" id="sub-submit-btn">
-              📤 Entregar Actividad
+              <i data-lucide="upload" class="icon"></i> Entregar Actividad
             </button>
           </form>
 

@@ -14,12 +14,12 @@
     <h1 class="page-title">Solicitudes de Inscripcion</h1>
     <p class="page-subtitle">{{ pending.count }} pendiente{{ pending.count|pluralize:"s" }} &bull; {{ approved.count }} aprobada{{ approved.count|pluralize:"s" }} &bull; {{ rejected.count }} rechazada{{ rejected.count|pluralize:"s" }}</p>
   </div>
-  <a href="{% url 'course_detail' course.pk %}" class="btn btn-secondary">&#8592; Volver</a>
+  <a href="{% url 'course_detail' course.pk %}" class="btn btn-secondary"><i data-lucide="arrow-left" class="icon"></i> Volver</a>
 </div>
 
 {% if pending %}
   <div class="section-header fade-in">
-    <span class="section-title" style="color:var(--warning);">&#9888; Pendientes ({{ pending.count }})</span>
+    <span class="section-title" style="color:var(--warning);"><i data-lucide="alert-triangle" class="icon"></i> Pendientes ({{ pending.count }})</span>
   </div>
   <div class="fade-in" style="margin-bottom:2rem;">
     {% for req in pending %}
@@ -40,11 +40,11 @@
           <div style="display:flex; gap:0.5rem;">
             <a href="{% url 'enrollment_review' course.pk req.pk 'approve' %}"
               class="btn btn-primary btn-sm" id="btn-approve-{{ req.pk }}">
-              &#10003; Aprobar
+              <i data-lucide="check" class="icon"></i> Aprobar
             </a>
             <a href="{% url 'enrollment_review' course.pk req.pk 'reject' %}"
               class="btn btn-danger btn-sm" id="btn-reject-{{ req.pk }}">
-              &#10007; Rechazar
+              <i data-lucide="x" class="icon"></i> Rechazar
             </a>
           </div>
         </div>
@@ -53,14 +53,14 @@
   </div>
 {% else %}
   <div class="empty-state" style="padding:2rem; margin-bottom:2rem;">
-    <div class="empty-icon">&#128236;</div>
+    <div class="empty-icon"><i data-lucide="mail" class="icon"></i></div>
     <p>No hay solicitudes pendientes</p>
   </div>
 {% endif %}
 
 {% if approved %}
   <div class="section-header fade-in">
-    <span class="section-title" style="color:var(--success);">&#10003; Aprobadas ({{ approved.count }})</span>
+    <span class="section-title" style="color:var(--success);"><i data-lucide="check" class="icon"></i> Aprobadas ({{ approved.count }})</span>
   </div>
   <div class="fade-in" style="margin-bottom:2rem;">
     {% for req in approved %}
@@ -72,7 +72,7 @@
           <div class="file-name">{{ req.user.display_name }}</div>
           <div class="file-meta">Aprobado {{ req.reviewed_at|date:"d/m/Y" }} por {{ req.reviewed_by.display_name }}</div>
         </div>
-        <span class="status-badge status-graded">&#10003; Aprobado</span>
+        <span class="status-badge status-graded"><i data-lucide="check" class="icon"></i> Aprobado</span>
       </div>
     {% endfor %}
   </div>
@@ -80,7 +80,7 @@
 
 {% if rejected %}
   <div class="section-header fade-in">
-    <span class="section-title" style="color:var(--danger);">&#10007; Rechazadas ({{ rejected.count }})</span>
+    <span class="section-title" style="color:var(--danger);"><i data-lucide="x" class="icon"></i> Rechazadas ({{ rejected.count }})</span>
   </div>
   <div class="fade-in">
     {% for req in rejected %}
@@ -92,7 +92,7 @@
           <div class="file-name">{{ req.user.display_name }}</div>
           <div class="file-meta">Rechazado {{ req.reviewed_at|date:"d/m/Y" }}</div>
         </div>
-        <span class="status-badge status-pending">&#10007; Rechazado</span>
+        <span class="status-badge status-pending"><i data-lucide="x" class="icon"></i> Rechazado</span>
       </div>
     {% endfor %}
   </div>

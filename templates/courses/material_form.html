@@ -26,7 +26,7 @@
       <div class="form-group">
         <label class="form-label">Archivo *</label>
         <div class="upload-area" onclick="document.getElementById('id_file').click()" id="upload-area">
-          <div class="upload-icon" id="upload-icon">&#128193;</div>
+          <div class="upload-icon" id="upload-icon"><i data-lucide="folder-open" class="icon"></i></div>
           <p style="color:var(--text-secondary); font-size:0.9rem;" id="upload-text">
             Click para seleccionar archivo
           </p>
@@ -54,7 +54,7 @@
 
       <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
         <button type="submit" id="btn-upload" class="btn btn-primary btn-lg" style="flex:1;">
-          &#11015; Subir Archivo
+          <i data-lucide="download" class="icon"></i> Subir Archivo
         </button>
         <a href="{% url 'session_detail' session.pk %}" class="btn btn-secondary btn-lg">Cancelar</a>
       </div>
@@ -74,8 +74,8 @@ const EXT_MAP = {
   zip: ['zip','rar','7z'],
 };
 const TYPE_ICONS = {
-  ppt: '&#128202;', excel: '&#128200;', word: '&#128196;',
-  pdf: '&#128196;', video: '&#127909;', zip: '&#128230;', other: '&#128193;'
+  ppt: '<i data-lucide="bar-chart-2" class="icon"></i>', excel: '<i data-lucide="trending-up" class="icon"></i>', word: '<i data-lucide="file" class="icon"></i>',
+  pdf: '<i data-lucide="file" class="icon"></i>', video: '<i data-lucide="film" class="icon"></i>', zip: '<i data-lucide="package" class="icon"></i>', other: '<i data-lucide="folder-open" class="icon"></i>'
 };
 const TYPE_LABELS = {
   ppt: 'PowerPoint', excel: 'Excel', word: 'Word',
@@ -108,7 +108,7 @@ function handleFileSelect(input) {
   }
 
   // Update upload area UI
-  document.getElementById('upload-icon').innerHTML = TYPE_ICONS[type] || '&#128193;';
+  document.getElementById('upload-icon').innerHTML = TYPE_ICONS[type] || '<i data-lucide="folder-open" class="icon"></i>';
   document.getElementById('upload-text').textContent = file.name;
   document.getElementById('upload-area').style.borderColor = 'var(--accent)';
 

@@ -17,9 +17,9 @@
       <a href="{% url 'session_create' course.pk %}" class="btn btn-primary btn-sm">+ Sesion</a>
     {% endif %}
     {% if is_owner %}
-      <a href="{% url 'course_edit' course.pk %}" class="btn btn-secondary btn-sm">&#9998; Editar Curso</a>
-      <a href="{% url 'course_moderators' course.pk %}" class="btn btn-secondary btn-sm">&#128737; Moderadores</a>
-      <a href="{% url 'course_delete' course.pk %}" class="btn btn-danger btn-sm">&#128465;</a>
+      <a href="{% url 'course_edit' course.pk %}" class="btn btn-secondary btn-sm"><i data-lucide="pencil" class="icon"></i> Editar Curso</a>
+      <a href="{% url 'course_moderators' course.pk %}" class="btn btn-secondary btn-sm"><i data-lucide="shield" class="icon"></i> Moderadores</a>
+      <a href="{% url 'course_delete' course.pk %}" class="btn btn-danger btn-sm"><i data-lucide="trash-2" class="icon"></i></a>
     {% endif %}
   </div>
 </div>
@@ -75,18 +75,18 @@
               </a>
             </h3>
             <div style="font-size:0.82rem; color:var(--text-muted); margin-top:0.3rem;">
-              &#128197; {{ session.date|date:"d/m/Y" }}
-              {% if session.materials.count %} &bull; &#128206; {{ session.materials.count }} archivos{% endif %}
-              {% if session.activities.count %} &bull; &#128221; {{ session.activities.count }} actividades{% endif %}
-              {% if session.video_link or session.video_file %} &bull; &#127909; Video{% endif %}
+              <i data-lucide="calendar" class="icon"></i> {{ session.date|date:"d/m/Y" }}
+              {% if session.materials.count %} &bull; <i data-lucide="paperclip" class="icon"></i> {{ session.materials.count }} archivos{% endif %}
+              {% if session.activities.count %} &bull; <i data-lucide="file-text" class="icon"></i> {{ session.activities.count }} actividades{% endif %}
+              {% if session.video_link or session.video_file %} &bull; <i data-lucide="film" class="icon"></i> Video{% endif %}
             </div>
           </div>
           <div style="display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;">
             {% if can_manage %}
-              <a href="{% url 'session_edit' session.pk %}" class="btn btn-secondary btn-sm">&#9998;</a>
-              <a href="{% url 'session_delete' session.pk %}" class="btn btn-danger btn-sm">&#128465;</a>
+              <a href="{% url 'session_edit' session.pk %}" class="btn btn-secondary btn-sm"><i data-lucide="pencil" class="icon"></i></a>
+              <a href="{% url 'session_delete' session.pk %}" class="btn btn-danger btn-sm"><i data-lucide="trash-2" class="icon"></i></a>
             {% endif %}
-            <a href="{% url 'session_detail' session.pk %}" class="btn btn-primary btn-sm">Ver &#8594;</a>
+            <a href="{% url 'session_detail' session.pk %}" class="btn btn-primary btn-sm">Ver <i data-lucide="arrow-right" class="icon"></i></a>
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@
   </div>
 {% else %}
   <div class="empty-state">
-    <div class="empty-icon">&#128218;</div>
+    <div class="empty-icon"><i data-lucide="book-open" class="icon"></i></div>
     <h3>No hay sesiones todavia</h3>
     {% if can_manage %}
       <a href="{% url 'session_create' course.pk %}" class="btn btn-primary" style="margin-top:1rem;">
@@ -122,7 +122,7 @@ document.getElementById('enroll-link')?.addEventListener('click', function() {
 {% if can_manage and students %}
 <!-- ═══ STUDENTS SECTION ═══ -->
 <div class="section-header fade-in" style="margin-top:2rem;">
-  <span class="section-title">👥 Estudiantes ({{ students.count }})</span>
+  <span class="section-title"><i data-lucide="users" class="icon"></i> Estudiantes ({{ students.count }})</span>
   {% if is_owner %}
   <a href="{% url 'enrollment_requests' course.pk %}" class="btn btn-secondary btn-sm">
     Ver Solicitudes{% if pending_count %} ({{ pending_count }}){% endif %}
@@ -133,7 +133,7 @@ document.getElementById('enroll-link')?.addEventListener('click', function() {
 <div class="card fade-in" style="padding:0;overflow:hidden;border-radius:12px;border:1px solid rgba(255,255,255,.08);">
   <!-- Search bar -->
   <div style="padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);">
-    <input type="text" id="student-search" placeholder="🔍 Buscar por nombre o correo..."
+    <input type="text" id="student-search" placeholder="<i data-lucide="search" class="icon"></i> Buscar por nombre o correo..."
       oninput="filterStudents(this.value)"
       style="width:100%;background:transparent;border:none;color:#fff;font-size:.9rem;outline:none;">
   </div>
@@ -211,7 +211,7 @@ function filterStudents(q) {
 </script>
 {% elif can_manage %}
 <div class="section-header fade-in" style="margin-top:2rem;">
-  <span class="section-title">👥 Estudiantes (0)</span>
+  <span class="section-title"><i data-lucide="users" class="icon"></i> Estudiantes (0)</span>
 </div>
 <div class="empty-state fade-in" style="padding:2rem;text-align:center;">
   <p style="color:rgba(255,255,255,.4);">No hay estudiantes inscritos aún.</p>

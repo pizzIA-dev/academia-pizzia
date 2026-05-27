@@ -12,7 +12,7 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend='accounts.backends.EmailOrUsernameBackend')
             messages.success(request, f'Bienvenido, {user.first_name}!')
             return redirect('dashboard')
         else:
@@ -29,7 +29,7 @@ def login_view(request):
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            login(request, user)
+            login(request, user, backend='accounts.backends.EmailOrUsernameBackend')
             next_url = request.GET.get('next', 'dashboard')
             return redirect(next_url)
         else:

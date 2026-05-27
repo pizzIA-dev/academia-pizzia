@@ -4,17 +4,17 @@
 {% block content %}
 <div class="page-header fade-in">
   <div>
-    <h1 class="page-title">Hola, {{ request.user.first_name|default:request.user.username }} &#128075;</h1>
+    <h1 class="page-title">Hola, {{ request.user.first_name|default:request.user.username }} <i data-lucide="hand" class="icon"></i></h1>
     <p class="page-subtitle">Tus cursos como profesor, moderador y estudiante</p>
   </div>
-  <a href="{% url 'course_catalog' %}" class="btn btn-secondary">🔍 Explorar Cursos</a>
+  <a href="{% url 'course_catalog' %}" class="btn btn-secondary"><i data-lucide="search" class="icon"></i> Explorar Cursos</a>
     <a href="{% url 'course_create' %}" id="btn-create-course" class="btn btn-primary">+ Crear Curso</a>
 </div>
 
 <!-- PROFESOR -->
 {% if taught %}
 <div class="section-header fade-in">
-  <span class="section-title">&#127775; Mis Cursos (Profesor)</span>
+  <span class="section-title"><i data-lucide="star" class="icon"></i> Mis Cursos (Profesor)</span>
 </div>
 <div class="course-grid fade-in" style="margin-bottom:2.5rem;">
   {% for course in taught %}
@@ -25,14 +25,14 @@
       </div>
       <div class="course-card-body">
         <div class="course-meta">
-          <span>&#128100; {{ course.students.count }} estudiantes</span>
-          <span>&#128218; {{ course.sessions.count }} sesiones</span>
+          <span><i data-lucide="user" class="icon"></i> {{ course.students.count }} estudiantes</span>
+          <span><i data-lucide="book-open" class="icon"></i> {{ course.sessions.count }} sesiones</span>
         </div>
         {% if pending_requests|default:'' %}
           {% with count=pending_requests|default:'' %}
             {% if course.pk in pending_requests %}
               <div class="alert-badge">
-                &#9888; {{ pending_requests|dictsort:course.pk }} solicitudes pendientes
+                <i data-lucide="alert-triangle" class="icon"></i> {{ pending_requests|dictsort:course.pk }} solicitudes pendientes
               </div>
             {% endif %}
           {% endwith %}
@@ -46,12 +46,12 @@
           {% for cpk, count in pending_requests.items %}
             {% if cpk == course.pk %}
               <a href="{% url 'enrollment_requests' course.pk %}" class="btn btn-warning btn-sm">
-                &#9888; {{ count }} solicitud{{ count|pluralize:"es" }}
+                <i data-lucide="alert-triangle" class="icon"></i> {{ count }} solicitud{{ count|pluralize:"es" }}
               </a>
             {% endif %}
           {% endfor %}
         {% endif %}
-        <a href="{% url 'course_detail' course.pk %}" class="btn btn-primary btn-sm">Ver curso &#8594;</a>
+        <a href="{% url 'course_detail' course.pk %}" class="btn btn-primary btn-sm">Ver curso <i data-lucide="arrow-right" class="icon"></i></a>
       </div>
     </div>
   {% endfor %}
@@ -61,7 +61,7 @@
 <!-- MODERADOR -->
 {% if moderated %}
 <div class="section-header fade-in">
-  <span class="section-title">&#128737; Moderando</span>
+  <span class="section-title"><i data-lucide="shield" class="icon"></i> Moderando</span>
 </div>
 <div class="course-grid fade-in" style="margin-bottom:2.5rem;">
   {% for course in moderated %}
@@ -72,12 +72,12 @@
       </div>
       <div class="course-card-body">
         <div class="course-meta">
-          <span>&#128100; {{ course.students.count }} estudiantes</span>
+          <span><i data-lucide="user" class="icon"></i> {{ course.students.count }} estudiantes</span>
           <span>Profesor: {{ course.teacher.display_name }}</span>
         </div>
       </div>
       <div class="course-card-footer">
-        <a href="{% url 'course_detail' course.pk %}" class="btn btn-primary btn-sm">Ver curso &#8594;</a>
+        <a href="{% url 'course_detail' course.pk %}" class="btn btn-primary btn-sm">Ver curso <i data-lucide="arrow-right" class="icon"></i></a>
       </div>
     </div>
   {% endfor %}
@@ -87,7 +87,7 @@
 <!-- ESTUDIANTE -->
 {% if enrolled %}
 <div class="section-header fade-in">
-  <span class="section-title">&#127891; Cursos Inscritos (Estudiante)</span>
+  <span class="section-title"><i data-lucide="graduation-cap" class="icon"></i> Cursos Inscritos (Estudiante)</span>
 </div>
 <div class="course-grid fade-in" style="margin-bottom:2.5rem;">
   {% for course in enrolled %}
@@ -98,12 +98,12 @@
       </div>
       <div class="course-card-body">
         <div class="course-meta">
-          <span>&#128218; {{ course.sessions.count }} sesiones</span>
+          <span><i data-lucide="book-open" class="icon"></i> {{ course.sessions.count }} sesiones</span>
           <span>Profesor: {{ course.teacher.display_name }}</span>
         </div>
       </div>
       <div class="course-card-footer">
-        <a href="{% url 'course_detail' course.pk %}" class="btn btn-primary btn-sm">Ver curso &#8594;</a>
+        <a href="{% url 'course_detail' course.pk %}" class="btn btn-primary btn-sm">Ver curso <i data-lucide="arrow-right" class="icon"></i></a>
       </div>
     </div>
   {% endfor %}
@@ -112,7 +112,7 @@
 
 {% if not taught and not moderated and not enrolled %}
 <div class="empty-state fade-in" style="margin-top:3rem;">
-  <div class="empty-icon">&#127891;</div>
+  <div class="empty-icon"><i data-lucide="graduation-cap" class="icon"></i></div>
   <h3>Bienvenido a AcademIA</h3>
   <p>Crea tu primer curso o pide al profesor el enlace de inscripcion</p>
   <a href="{% url 'course_create' %}" class="btn btn-primary" style="margin-top:1rem;">+ Crear mi primer curso</a>
@@ -123,7 +123,7 @@
 {% with my_requests=request.user.enrollment_requests.all %}
   {% if my_requests %}
     <div class="section-header fade-in" style="margin-top:1rem;">
-      <span class="section-title">&#8987; Mis solicitudes de inscripcion</span>
+      <span class="section-title"><i data-lucide="clock" class="icon"></i> Mis solicitudes de inscripcion</span>
     </div>
     <div class="fade-in" style="margin-bottom:2rem;">
       {% for req in my_requests %}
@@ -133,11 +133,11 @@
             <div class="file-meta">Enviada {{ req.requested_at|date:"d/m/Y" }}</div>
           </div>
           {% if req.status == 'pending' %}
-            <span class="status-badge status-submitted">&#8987; Pendiente</span>
+            <span class="status-badge status-submitted"><i data-lucide="clock" class="icon"></i> Pendiente</span>
           {% elif req.status == 'approved' %}
-            <span class="status-badge status-graded">&#10003; Aprobada</span>
+            <span class="status-badge status-graded"><i data-lucide="check" class="icon"></i> Aprobada</span>
           {% else %}
-            <span class="status-badge status-pending">&#10007; Rechazada</span>
+            <span class="status-badge status-pending"><i data-lucide="x" class="icon"></i> Rechazada</span>
           {% endif %}
         </div>
       {% endfor %}

@@ -19,14 +19,14 @@
     {% if session.description %}
       <p class="page-subtitle">{{ session.description }}</p>
     {% endif %}
-    <div style="font-size:0.83rem; color:var(--text-muted);">&#128197; {{ session.date|date:"l d/m/Y" }}</div>
+    <div style="font-size:0.83rem; color:var(--text-muted);"><i data-lucide="calendar" class="icon"></i> {{ session.date|date:"l d/m/Y" }}</div>
   </div>
   {% if can_manage %}
     <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-      <a href="{% url 'material_upload' session.pk %}" class="btn btn-secondary btn-sm">&#128206; Subir Material</a>
+      <a href="{% url 'material_upload' session.pk %}" class="btn btn-secondary btn-sm"><i data-lucide="paperclip" class="icon"></i> Subir Material</a>
       <a href="{% url 'activity_create' session.pk %}" class="btn btn-primary btn-sm">+ Actividad</a>
-      <a href="{% url 'session_edit' session.pk %}" class="btn btn-secondary btn-sm">&#9998; Editar</a>
-      <a href="{% url 'session_delete' session.pk %}" class="btn btn-danger btn-sm">&#128465; Eliminar</a>
+      <a href="{% url 'session_edit' session.pk %}" class="btn btn-secondary btn-sm"><i data-lucide="pencil" class="icon"></i> Editar</a>
+      <a href="{% url 'session_delete' session.pk %}" class="btn btn-danger btn-sm"><i data-lucide="trash-2" class="icon"></i> Eliminar</a>
     </div>
   {% endif %}
 </div>
@@ -38,16 +38,16 @@
         <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.3rem;">
           Grabacion de clase
         </div>
-        <div style="font-size:0.95rem; font-weight:600;">&#127909; {{ session.title }}</div>
+        <div style="font-size:0.95rem; font-weight:600;"><i data-lucide="film" class="icon"></i> {{ session.title }}</div>
       </div>
       <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
         {% if session.video_file %}
           <button onclick="openPreview('{{ session.video_file.url }}', 'video', '{{ session.title }}')"
-            class="video-link-btn">&#9654; Previsualizar</button>
-          <a href="{{ session.video_file.url }}" target="_blank" class="video-link-btn">&#11015; Descargar</a>
+            class="video-link-btn"><i data-lucide="play" class="icon"></i> Previsualizar</button>
+          <a href="{{ session.video_file.url }}" target="_blank" class="video-link-btn"><i data-lucide="download" class="icon"></i> Descargar</a>
         {% endif %}
         {% if session.video_link %}
-          <a href="{{ session.video_link }}" target="_blank" rel="noopener" class="video-link-btn">&#9654; Ver enlace</a>
+          <a href="{{ session.video_link }}" target="_blank" rel="noopener" class="video-link-btn"><i data-lucide="play" class="icon"></i> Ver enlace</a>
         {% endif %}
       </div>
     </div>
@@ -57,7 +57,7 @@
 
 <!-- ═══════════ GRABACIONES DE LA CLASE ═══════════ -->
 <div class="section-header fade-in" style="margin-top:2.5rem;">
-  <span class="section-title">🎬 Grabaciones de la Clase</span>
+  <span class="section-title"><i data-lucide="film" class="icon"></i> Grabaciones de la Clase</span>
   {% if can_manage %}
   <button onclick="document.getElementById('rec-form-wrap').style.display=document.getElementById('rec-form-wrap').style.display==='none'?'block':'none'"
     class="btn btn-primary btn-sm">+ Agregar Grabación</button>
@@ -80,11 +80,11 @@
           <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Fuente</label>
           <select name="source"
             style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;">
-            <option value="drive">📁 Google Drive</option>
-            <option value="youtube">▶️ YouTube</option>
-            <option value="zoom">💻 Zoom</option>
-            <option value="meet">📹 Google Meet</option>
-            <option value="other">🔗 Otro enlace</option>
+            <option value="drive"><i data-lucide="folder" class="icon"></i> Google Drive</option>
+            <option value="youtube">▶ YouTube</option>
+            <option value="zoom"><i data-lucide="monitor" class="icon"></i> Zoom</option>
+            <option value="meet"><i data-lucide="video" class="icon"></i> Google Meet</option>
+            <option value="other"><i data-lucide="link" class="icon"></i> Otro enlace</option>
           </select>
         </div>
       </div>
@@ -126,7 +126,7 @@
     <a href="{{ rec.link }}" target="_blank" rel="noopener"
       style="display:block;padding:1.5rem;background:linear-gradient(135deg,{{ rec.source_color }}22,{{ rec.source_color }}11);
              text-align:center;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.06);">
-      <div style="font-size:2.5rem;margin-bottom:.5rem;">{{ rec.source_icon }}</div>
+      <div style="margin-bottom:.5rem;">{{ rec.source_icon }}</div>
       <div style="color:{{ rec.source_color }};font-size:.8rem;font-weight:600;">
         {{ rec.get_source_display }} → Abrir grabación
       </div>
@@ -142,14 +142,14 @@
         <div style="display:flex;gap:.5rem;align-items:center;">
           <a href="{{ rec.link }}" target="_blank" rel="noopener"
             style="font-size:.75rem;color:#38bdf8;text-decoration:none;background:rgba(56,189,248,.1);
-                   padding:.25rem .6rem;border-radius:6px;">🔗 Abrir</a>
+                   padding:.25rem .6rem;border-radius:6px;"><i data-lucide="link" class="icon"></i> Abrir</a>
           {% if can_manage %}
           <form method="POST" action="{% url 'recording_delete' rec.pk %}" style="display:inline;"
             onsubmit="return confirm('¿Eliminar esta grabación?')">
             {% csrf_token %}
             <button type="submit"
               style="font-size:.75rem;color:#ef4444;background:rgba(239,68,68,.1);border:none;
-                     padding:.25rem .6rem;border-radius:6px;cursor:pointer;">🗑</button>
+                     padding:.25rem .6rem;border-radius:6px;cursor:pointer;"><i data-lucide="trash-2" class="icon"></i></button>
           </form>
           {% endif %}
         </div>
@@ -160,7 +160,7 @@
 </div>
 {% else %}
 <div class="empty-state fade-in" style="padding:2rem;text-align:center;margin-bottom:2rem;">
-  <div style="font-size:2rem;margin-bottom:.5rem;">🎬</div>
+  <div style="margin-bottom:.5rem;"><i data-lucide="film" class="icon"></i></div>
   <p style="color:rgba(255,255,255,.4);font-size:.9rem;">No hay grabaciones en esta sesión</p>
 </div>
 {% endif %}
@@ -170,7 +170,7 @@
 
 <!-- Materials -->
 <div class="section-header fade-in">
-  <span class="section-title">&#128206; Material de Clase</span>
+  <span class="section-title"><i data-lucide="paperclip" class="icon"></i> Material de Clase</span>
   {% if can_manage %}
     <a href="{% url 'material_upload' session.pk %}" class="btn btn-primary btn-sm">+ Subir Archivo</a>
   {% endif %}
@@ -191,13 +191,13 @@
           {% elif material.file_type == 'pdf' %}
             <svg viewBox="0 0 48 48" width="52" height="52"><rect x="6" y="6" width="36" height="36" rx="6" fill="rgba(255,255,255,0.15)"/><text x="24" y="30" text-anchor="middle" font-size="14" font-weight="bold" fill="white" font-family="sans-serif">PDF</text></svg>
           {% elif material.file_type == 'video' %}
-            <div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">&#9654;</div>
+            <div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;"><i data-lucide="play" class="icon"></i></div>
           {% else %}
-            <div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">&#128193;</div>
+            <div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;"><i data-lucide="folder-open" class="icon"></i></div>
           {% endif %}
           <!-- Hover overlay -->
           <div class="material-thumb-overlay">
-            {% if material.file_type == 'video' %}&#9654;{% else %}&#128065;{% endif %}
+            {% if material.file_type == 'video' %}<i data-lucide="play" class="icon"></i>{% else %}<i data-lucide="eye" class="icon"></i>{% endif %}
           </div>
         </div>
         <!-- File info -->
@@ -207,12 +207,12 @@
         </div>
         <!-- Actions (stop propagation so card click doesn't fire) -->
         <div class="material-actions" onclick="event.stopPropagation()">
-          <a href="{% url 'material_download' material.pk %}" class="mat-action-btn" title="Descargar">&#11015;</a>
+          <a href="{% url 'material_download' material.pk %}" class="mat-action-btn" title="Descargar"><i data-lucide="download" class="icon"></i></a>
           {% if can_manage %}
             <form method="POST" action="{% url 'material_delete' material.pk %}" style="display:inline;">
               {% csrf_token %}
               <button type="submit" class="mat-action-btn mat-action-danger"
-                onclick="return confirm('Eliminar este archivo?')" title="Eliminar">&#128465;</button>
+                onclick="return confirm('Eliminar este archivo?')" title="Eliminar"><i data-lucide="trash-2" class="icon"></i></button>
             </form>
           {% endif %}
         </div>
@@ -221,14 +221,14 @@
   </div>
 {% else %}
   <div class="empty-state" style="padding:1.5rem; margin-bottom:1.5rem;">
-    <div class="empty-icon" style="font-size:1.8rem;">&#128194;</div>
+    <div class="empty-icon" style=""><i data-lucide="folder-open" class="icon"></i></div>
     <p>No hay materiales todavia</p>
   </div>
 {% endif %}
 
 <!-- Activities -->
 <div class="section-header fade-in">
-  <span class="section-title">&#128221; Actividades</span>
+  <span class="section-title"><i data-lucide="file-text" class="icon"></i> Actividades</span>
   {% if can_manage %}
     <a href="{% url 'activity_create' session.pk %}" class="btn btn-primary btn-sm">+ Nueva Actividad</a>
   {% endif %}
@@ -245,16 +245,16 @@
                 {{ activity.title }}
               </a>
             </h4>
-            <div class="activity-due">&#9200; Entrega: {{ activity.due_date|date:"d/m/Y H:i" }}</div>
+            <div class="activity-due"><i data-lucide="clock" class="icon"></i> Entrega: {{ activity.due_date|date:"d/m/Y H:i" }}</div>
           </div>
           <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
             {% if can_manage %}
               <span style="font-size:0.82rem; color:var(--text-muted);">{{ activity.submission_count }} entregas</span>
               <a href="{% url 'submissions_list' activity.pk %}" class="btn btn-secondary btn-sm">Ver Entregas</a>
-              <a href="{% url 'activity_edit' activity.pk %}" class="btn btn-secondary btn-sm">&#9998;</a>
-              <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-danger btn-sm">&#128465;</a>
+              <a href="{% url 'activity_edit' activity.pk %}" class="btn btn-secondary btn-sm"><i data-lucide="pencil" class="icon"></i></a>
+              <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-danger btn-sm"><i data-lucide="trash-2" class="icon"></i></a>
             {% endif %}
-            <a href="{% url 'activity_detail' activity.pk %}" class="btn btn-primary btn-sm">Ver &#8594;</a>
+            <a href="{% url 'activity_detail' activity.pk %}" class="btn btn-primary btn-sm">Ver <i data-lucide="arrow-right" class="icon"></i></a>
           </div>
         </div>
       </div>
@@ -262,7 +262,7 @@
   </div>
 {% else %}
   <div class="empty-state" style="padding:1.5rem;">
-    <div class="empty-icon" style="font-size:1.8rem;">&#128221;</div>
+    <div class="empty-icon" style=""><i data-lucide="file-text" class="icon"></i></div>
     <p>No hay actividades en esta sesion</p>
   </div>
 {% endif %}
@@ -284,13 +284,13 @@
         <a id="preview-download" href="#" target="_blank"
           style="font-size:0.82rem; color:rgba(255,255,255,0.7); text-decoration:none;
           padding:0.3rem 0.75rem; border:1px solid rgba(255,255,255,0.2); border-radius:6px;">
-          &#11015; Descargar
+          <i data-lucide="download" class="icon"></i> Descargar
         </a>
         <button onclick="closePreview()" style="
           background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4);
           color:#ef4444; border-radius:6px; padding:0.3rem 0.75rem;
           cursor:pointer; font-size:0.9rem;">
-          &#10005; Cerrar
+          <i data-lucide="x" class="icon"></i> Cerrar
         </button>
       </div>
     </div>
@@ -354,7 +354,7 @@ function openPreview(url, type, name, viewUrl, dlUrl) {
       // Fetch PDF bytes via our authenticated proxy → blob URL for reliable Chrome rendering
       body.innerHTML = `
         <div id="pdf-loading" style="color:rgba(255,255,255,0.5);font-size:.9rem;padding:2rem;text-align:center;">
-          <div style="font-size:2rem;margin-bottom:.5rem;">📄</div>
+          <div style="margin-bottom:.5rem;"><i data-lucide="file-text" class="icon"></i></div>
           Cargando PDF...
         </div>`;
 
@@ -375,10 +375,10 @@ function openPreview(url, type, name, viewUrl, dlUrl) {
         .catch(err => {
           body.innerHTML = `
             <div style="padding:2rem;text-align:center;color:#fca5a5;">
-              <div style="font-size:2rem;margin-bottom:1rem;">⚠️</div>
+              <div style="margin-bottom:1rem;"><i data-lucide="alert-triangle" class="icon"></i></div>
               <p>No se pudo cargar la vista previa.</p>
               <p style="font-size:.8rem;opacity:.6;">${err.message}</p>
-              ${dlUrl ? '<a href="' + dlUrl + '" style="display:inline-block;margin-top:1rem;background:#0ea5e9;color:#fff;padding:.6rem 1.4rem;border-radius:8px;text-decoration:none;font-weight:600;">⬇ Descargar</a>' : ''}
+              ${dlUrl ? '<a href="' + dlUrl + '" style="display:inline-block;margin-top:1rem;background:#0ea5e9;color:#fff;padding:.6rem 1.4rem;border-radius:8px;text-decoration:none;font-weight:600;"><i data-lucide="download" class="icon"></i> Descargar</a>' : ''}
             </div>`;
         });
 
@@ -387,7 +387,7 @@ function openPreview(url, type, name, viewUrl, dlUrl) {
       // Since Google Docs viewer needs public URLs, we use blob + iframe trick
       body.innerHTML = `
         <div id="doc-loading" style="color:rgba(255,255,255,0.5);font-size:.9rem;padding:2rem;text-align:center;">
-          <div style="font-size:2rem;margin-bottom:.5rem;">📄</div>
+          <div style="margin-bottom:.5rem;"><i data-lucide="file-text" class="icon"></i></div>
           Cargando documento...
         </div>`;
 
@@ -398,8 +398,8 @@ function openPreview(url, type, name, viewUrl, dlUrl) {
           .then(blob => {
             // For office docs, offer a download-style preview
             const blobUrl = URL.createObjectURL(blob);
-            const icons = {word:'📝', excel:'📊', ppt:'📊'};
-            const icon = icons[type] || '📄';
+            const icons = {word:'<i data-lucide="file-text" class="icon"></i>', excel:'<i data-lucide="bar-chart-2" class="icon"></i>', ppt:'<i data-lucide="bar-chart-2" class="icon"></i>'};
+            const icon = icons[type] || '<i data-lucide="file-text" class="icon"></i>';
             body.innerHTML = `
               <div style="padding:3rem 2rem;text-align:center;">
                 <div style="font-size:4rem;margin-bottom:1rem;">${icon}</div>
@@ -409,7 +409,7 @@ function openPreview(url, type, name, viewUrl, dlUrl) {
                 </p>
                 <a href="${blobUrl}" download="${name}${ext}"
                    style="display:inline-block;background:#0ea5e9;color:#fff;padding:.7rem 1.8rem;border-radius:8px;text-decoration:none;font-weight:600;">
-                  ⬇ Descargar ${ext.toUpperCase()}
+                  <i data-lucide="download" class="icon"></i> Descargar ${ext.toUpperCase()}
                 </a>
               </div>`;
           })
@@ -419,32 +419,32 @@ function openPreview(url, type, name, viewUrl, dlUrl) {
       }
 
     } else if (type === 'zip') {
-      const icons = {zip:'🗜️'};
+      const icons = {zip:'🗜'};
       body.innerHTML = `
         <div style="padding:3rem 2rem;text-align:center;">
-          <div style="font-size:4rem;margin-bottom:1rem;">🗜️</div>
+          <div style="font-size:4rem;margin-bottom:1rem;">🗜</div>
           <p style="color:#fff;font-weight:600;font-size:1.1rem;margin-bottom:.5rem;">${name}.zip</p>
           <p style="color:rgba(255,255,255,0.4);font-size:.85rem;margin-bottom:1.5rem;">
             Archivo comprimido — descarga para ver el contenido
           </p>
-          ${dlUrl ? '<a href="' + dlUrl + '" style="display:inline-block;background:#0ea5e9;color:#fff;padding:.7rem 1.8rem;border-radius:8px;text-decoration:none;font-weight:600;">⬇ Descargar ZIP</a>' : ''}
+          ${dlUrl ? '<a href="' + dlUrl + '" style="display:inline-block;background:#0ea5e9;color:#fff;padding:.7rem 1.8rem;border-radius:8px;text-decoration:none;font-weight:600;"><i data-lucide="download" class="icon"></i> Descargar ZIP</a>' : ''}
         </div>`;
 
     } else {
       // Fallback genérico
       body.innerHTML = `
         <div style="padding:3rem 2rem;text-align:center;">
-          <div style="font-size:4rem;margin-bottom:1rem;">📄</div>
+          <div style="font-size:4rem;margin-bottom:1rem;"><i data-lucide="file-text" class="icon"></i></div>
           <p style="color:#fff;font-weight:600;">${name}</p>
-          ${dlUrl ? '<a href="' + dlUrl + '" style="display:inline-block;margin-top:1rem;background:#0ea5e9;color:#fff;padding:.6rem 1.4rem;border-radius:8px;text-decoration:none;font-weight:600;">⬇ Descargar</a>' : ''}
+          ${dlUrl ? '<a href="' + dlUrl + '" style="display:inline-block;margin-top:1rem;background:#0ea5e9;color:#fff;padding:.6rem 1.4rem;border-radius:8px;text-decoration:none;font-weight:600;"><i data-lucide="download" class="icon"></i> Descargar</a>' : ''}
         </div>`;
     }
   }, 50);
 }
 
 function showDocFallback(type, name, ext, dlUrl) {
-  const icons = {word:'📝', excel:'📊', ppt:'📊'};
-  const icon = icons[type] || '📄';
+  const icons = {word:'<i data-lucide="file-text" class="icon"></i>', excel:'<i data-lucide="bar-chart-2" class="icon"></i>', ppt:'<i data-lucide="bar-chart-2" class="icon"></i>'};
+  const icon = icons[type] || '<i data-lucide="file-text" class="icon"></i>';
   const body = document.getElementById('preview-body');
   body.innerHTML = `
     <div style="padding:3rem 2rem;text-align:center;">
@@ -453,7 +453,7 @@ function showDocFallback(type, name, ext, dlUrl) {
       <p style="color:rgba(255,255,255,0.4);font-size:.85rem;margin-bottom:1.5rem;">
         Vista previa no disponible para este tipo de archivo
       </p>
-      ${dlUrl ? '<a href="' + dlUrl + '" style="display:inline-block;background:#0ea5e9;color:#fff;padding:.7rem 1.8rem;border-radius:8px;text-decoration:none;font-weight:600;">⬇ Descargar ' + ext.toUpperCase() + '</a>' : ''}
+      ${dlUrl ? '<a href="' + dlUrl + '" style="display:inline-block;background:#0ea5e9;color:#fff;padding:.7rem 1.8rem;border-radius:8px;text-decoration:none;font-weight:600;"><i data-lucide="download" class="icon"></i> Descargar ' + ext.toUpperCase() + '</a>' : ''}
     </div>`;
 }
 
@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <h3 style="margin:0;font-size:1.1rem;color:#fff;">Subir Material</h3>
       <button onclick="closeUploadModal()" id="upload-close-btn"
         style="background:rgba(239,68,68,.15);border:none;color:#ef4444;
-               border-radius:6px;padding:.3rem .6rem;cursor:pointer;font-size:1rem;">✕</button>
+               border-radius:6px;padding:.3rem .6rem;cursor:pointer;"><i data-lucide="x" class="icon"></i></button>
     </div>
     <form id="upload-form" enctype="multipart/form-data">
       {% csrf_token %}
@@ -511,7 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="drop-zone" onclick="document.getElementById('upload-file').click()"
           style="border:2px dashed rgba(255,255,255,.2);border-radius:10px;padding:2rem;
                  text-align:center;cursor:pointer;transition:.2s;color:rgba(255,255,255,.4);">
-          <div style="font-size:2rem;margin-bottom:.5rem;">📁</div>
+          <div style="margin-bottom:.5rem;"><i data-lucide="folder" class="icon"></i></div>
           <div id="drop-label">Haz clic o arrastra el archivo aquí</div>
         </div>
         <input type="file" id="upload-file" name="file" required style="display:none"
@@ -542,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
   background:#1e2236;border:1px solid rgba(56,189,248,.3);border-radius:12px;
   padding:1rem 1.2rem;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.5);">
   <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;">
-    <div id="widget-icon">⬆️</div>
+    <div id="widget-icon">⬆</div>
     <div style="flex:1;min-width:0;">
       <div id="widget-name" style="color:#fff;font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
       <div id="widget-sub" style="color:rgba(255,255,255,.4);font-size:.75rem;"></div>
@@ -649,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
           var data = JSON.parse(this.responseText);
           if (data.success) {
             completeWidget(data.name);
-            showToast('✅ "'+data.name+'" subido exitosamente', 'success');
+            showToast('<i data-lucide="check-circle" class="icon"></i> "'+data.name+'" subido exitosamente', 'success');
             document.getElementById('upload-modal').style.display = 'none';
             document.body.style.overflow = '';
             resetUploadForm();
@@ -659,7 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch(ex) {}
       }
       failWidget();
-      showToast('❌ Error al subir el archivo', 'error');
+      showToast('<i data-lucide="x-circle" class="icon"></i> Error al subir el archivo', 'error');
       document.getElementById('upload-submit-btn').disabled = false;
       document.getElementById('upload-submit-btn').textContent = 'Reintentar';
       document.getElementById('upload-cancel-btn').disabled = false;
@@ -667,7 +667,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     currentXHR.addEventListener('error', function() {
       currentXHR = null; failWidget();
-      showToast('❌ Error de red', 'error');
+      showToast('<i data-lucide="x-circle" class="icon"></i> Error de red', 'error');
       document.getElementById('upload-submit-btn').disabled = false;
       document.getElementById('upload-submit-btn').textContent = 'Reintentar';
       document.getElementById('upload-cancel-btn').disabled = false;
@@ -691,7 +691,7 @@ function showWidget(name, size) {
   document.getElementById('widget-sub').textContent = fmtSize(size);
   document.getElementById('widget-pct').textContent = '0%';
   document.getElementById('widget-bar').style.width = '0%';
-  document.getElementById('widget-icon').textContent = '⬆️';
+  document.getElementById('widget-icon').textContent = '⬆';
   document.getElementById('upload-widget').style.display = 'block';
   document.getElementById('upload-widget').style.borderColor = 'rgba(56,189,248,.3)';
 }
@@ -701,7 +701,7 @@ function updateWidget(pct, speed, remaining) {
   document.getElementById('widget-sub').textContent = fmtSize(speed)+'/s · '+fmtTime(remaining);
 }
 function completeWidget(name) {
-  document.getElementById('widget-icon').textContent = '✅';
+  document.getElementById('widget-icon').textContent = '<i data-lucide="check-circle" class="icon"></i>';
   document.getElementById('widget-pct').textContent = '100%';
   document.getElementById('widget-bar').style.width = '100%';
   document.getElementById('widget-sub').textContent = 'Completado';
@@ -709,7 +709,7 @@ function completeWidget(name) {
   setTimeout(hideWidget, 4000);
 }
 function failWidget() {
-  document.getElementById('widget-icon').textContent = '❌';
+  document.getElementById('widget-icon').textContent = '<i data-lucide="x-circle" class="icon"></i>';
   document.getElementById('widget-sub').textContent = 'Error';
   document.getElementById('upload-widget').style.borderColor = 'rgba(239,68,68,.4)';
   setTimeout(hideWidget, 5000);

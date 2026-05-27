@@ -45,7 +45,7 @@
               <div class="color-swatch {% if color == current_color %}selected{% endif %}"
                 style="background:{{ color }};" title="{{ color }}"
                 onclick="selectColor(this, '{{ color }}')">
-                {% if color == current_color %}&#10003;{% endif %}
+                {% if color == current_color %}<i data-lucide="check" class="icon"></i>{% endif %}
               </div>
             </label>
           {% endfor %}
@@ -54,7 +54,7 @@
 
       <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
         <button type="submit" id="btn-save-course" class="btn btn-primary btn-lg" style="flex:1;">
-          &#10003; Guardar Curso
+          <i data-lucide="check" class="icon"></i> Guardar Curso
         </button>
         {% if course %}
           <a href="#" onclick="history.back();return false;" class="btn btn-secondary btn-lg">Cancelar</a>
@@ -75,7 +75,7 @@ function selectColor(el, color) {
     s.innerHTML = '';
   });
   el.classList.add('selected');
-  el.innerHTML = '&#10003;';
+  el.innerHTML = '<i data-lucide="check" class="icon"></i>';
   // Set the radio
   document.querySelectorAll('.color-radio').forEach(r => {
     r.checked = r.value === color;

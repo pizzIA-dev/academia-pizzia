@@ -7,7 +7,7 @@
   <title>{% block title %}AcademIA{% endblock %} | AcademIA</title>
   {% load static %}
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127891;</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'><i data-lucide="graduation-cap" class="icon"></i></text></svg>">
 </head>
 <body>
   <nav class="navbar">
@@ -37,7 +37,7 @@
       <div class="messages-container">
         {% for message in messages %}
           <div class="alert alert-{{ message.tags }}">
-            {% if message.tags == 'success' %}&#10003;{% elif message.tags == 'error' %}&#10007;{% elif message.tags == 'warning' %}&#9888;{% else %}&#8505;{% endif %}
+            {% if message.tags == 'success' %}<i data-lucide="check" class="icon"></i>{% elif message.tags == 'error' %}<i data-lucide="x" class="icon"></i>{% elif message.tags == 'warning' %}<i data-lucide="alert-triangle" class="icon"></i>{% else %}<i data-lucide="info" class="icon"></i>{% endif %}
             {{ message }}
           </div>
         {% endfor %}

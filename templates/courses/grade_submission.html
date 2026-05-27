@@ -14,14 +14,14 @@
     <h1 class="page-title">Calificar Entrega</h1>
     <p class="page-subtitle">{{ submission.student.display_name }} &bull; {{ activity.title }}</p>
   </div>
-  <a href="{% url 'submissions_list' activity.pk %}" class="btn btn-secondary">&#8592; Volver</a>
+  <a href="{% url 'submissions_list' activity.pk %}" class="btn btn-secondary"><i data-lucide="arrow-left" class="icon"></i> Volver</a>
 </div>
 
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;" class="fade-in">
 
   <!-- Entrega del estudiante -->
   <div class="card">
-    <h3 class="section-title" style="margin-bottom:1rem;">&#128228; Entrega del Estudiante</h3>
+    <h3 class="section-title" style="margin-bottom:1rem;"><i data-lucide="upload" class="icon"></i> Entrega del Estudiante</h3>
     <div style="margin-bottom:1rem;">
       <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.25rem;">ESTUDIANTE</div>
       <div style="font-weight:700;">{{ submission.student.display_name }}</div>
@@ -31,7 +31,7 @@
       <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.25rem;">FECHA DE ENTREGA</div>
       <div>{{ submission.submitted_at|date:"d/m/Y H:i" }}</div>
       {% if submission.submitted_at > activity.due_date %}
-        <span style="font-size:0.78rem; color:var(--warning);">&#9888; Entregado fuera de plazo</span>
+        <span style="font-size:0.78rem; color:var(--warning);"><i data-lucide="alert-triangle" class="icon"></i> Entregado fuera de plazo</span>
       {% endif %}
     </div>
     {% if submission.comment %}
@@ -42,7 +42,7 @@
     {% endif %}
     {% if submission.files.exists %}
     <div style="margin-top:.8rem;">
-      <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:.5rem;">📎 Archivos entregados ({{ submission.files.count }}):</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:.5rem;"><i data-lucide="paperclip" class="icon"></i> Archivos entregados ({{ submission.files.count }}):</div>
       {% for sf in submission.files.all %}
       <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.04);border-radius:8px;padding:.5rem .8rem;margin-bottom:.4rem;">
         <span style="background:rgba(56,189,248,.15);color:#38bdf8;border-radius:4px;padding:.15rem .4rem;font-size:.72rem;font-weight:700;">{{ sf.file_type_label }}</span>
@@ -53,7 +53,7 @@
     </div>
     {% elif submission.file %}
     <a href="{{ submission.file.url }}" target="_blank" class="btn btn-primary btn-block" style="margin-top:0.5rem;">
-      &#11015; Ver Archivo Entregado
+      <i data-lucide="download" class="icon"></i> Ver Archivo Entregado
     </a>
     {% endif %}
   </div>
@@ -61,7 +61,7 @@
   <!-- Formulario de calificacion -->
   <div class="card" style="border-color:rgba(0,198,255,0.2);">
     <h3 class="section-title" style="margin-bottom:1rem;">
-      {% if submission.is_graded %}&#9998; Editar Calificacion{% else %}&#9989; Asignar Calificacion{% endif %}
+      {% if submission.is_graded %}<i data-lucide="pencil" class="icon"></i> Editar Calificacion{% else %}<i data-lucide="check-circle" class="icon"></i> Asignar Calificacion{% endif %}
     </h3>
 
     {% if submission.is_graded %}
@@ -103,7 +103,7 @@
       </div>
 
       <button type="submit" id="btn-save-grade" class="btn btn-primary btn-block btn-lg">
-        {% if submission.is_graded %}&#9998; Actualizar Nota{% else %}&#9989; Guardar Nota{% endif %}
+        {% if submission.is_graded %}<i data-lucide="pencil" class="icon"></i> Actualizar Nota{% else %}<i data-lucide="check-circle" class="icon"></i> Guardar Nota{% endif %}
       </button>
     </form>
   </div>
@@ -111,7 +111,7 @@
 
 {% if submission.files.exists %}
 <div class="card" style="margin-bottom:1rem;padding:1.2rem;">
-  <h4 style="margin:0 0 .8rem;color:#fff;font-size:.95rem;">📎 Archivos entregados ({{ submission.files.count }})</h4>
+  <h4 style="margin:0 0 .8rem;color:#fff;font-size:.95rem;"><i data-lucide="paperclip" class="icon"></i> Archivos entregados ({{ submission.files.count }})</h4>
   {% for sf in submission.files.all %}
   <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem 0;
     border-bottom:1px solid rgba(255,255,255,.06);">
@@ -128,7 +128,7 @@
 </div>
 {% elif submission.file %}
 <div class="card" style="margin-bottom:1rem;padding:1.2rem;">
-  <h4 style="margin:0 0 .5rem;color:#fff;font-size:.95rem;">📎 Archivo entregado</h4>
+  <h4 style="margin:0 0 .5rem;color:#fff;font-size:.95rem;"><i data-lucide="paperclip" class="icon"></i> Archivo entregado</h4>
   <a href="{{ submission.file.url }}" target="_blank" class="btn btn-secondary btn-sm">
     ↓ Descargar archivo
   </a>

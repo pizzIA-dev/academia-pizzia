@@ -73,7 +73,7 @@
             </td>
             <td>
               {% if sub.is_graded %}
-                <span class="status-badge status-graded">✓ Calificado</span>
+                <span class="status-badge status-graded"><i data-lucide="check" class="icon"></i> Calificado</span>
               {% else %}
                 <span class="status-badge status-pending">Pendiente</span>
               {% endif %}
@@ -83,7 +83,7 @@
             </td>
             <td>
               <a href="{% url 'grade_submission' sub.pk %}" class="btn btn-primary btn-sm">
-                {% if sub.is_graded %}✏ Editar{% else %}★ Calificar{% endif %}
+                {% if sub.is_graded %}<i data-lucide="pencil" class="icon"></i> Editar{% else %}<i data-lucide="star" class="icon"></i> Calificar{% endif %}
               </a>
             </td>
           </tr>
@@ -93,7 +93,7 @@
   </div>
 {% else %}
   <div class="empty-state">
-    <div class="empty-icon">📭</div>
+    <div class="empty-icon"><i data-lucide="inbox" class="icon"></i></div>
     <h3>Ningún estudiante ha entregado todavia</h3>
   </div>
 {% endif %}
