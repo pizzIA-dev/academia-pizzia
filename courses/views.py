@@ -517,6 +517,81 @@ def remove_student(request, pk, student_pk):
 
 
 
+
+def _ext_and_ct(file_url, stored_name=''):
+    """
+    Extract file extension from Cloudinary URL (most reliable) or stored name.
+    Cloudinary strips extension from public_id but preserves it in the URL.
+    Returns (extension, content_type).
+    """
+    import os as _os
+    from urllib.parse import urlparse as _up, unquote as _uq
+
+    ext = ''
+    # 1. Try URL path (Cloudinary URL includes extension)
+    try:
+        url_path = _up(file_url).path.split('?')[0]
+        e = _os.path.splitext(_uq(url_path))[1].lower()
+        if e and 2 <= len(e) <= 12:
+            ext = e
+    except Exception:
+        pass
+    # 2. Fallback: stored name
+    if not ext and stored_name:
+        ext = _os.path.splitext(stored_name)[1].lower()
+
+    ct_map = {
+        '.pdf':   'application/pdf',
+        '.doc':   'application/msword',
+        '.docx':  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        '.ppt':   'application/vnd.ms-powerpoint',
+        '.pptx':  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        '.xls':   'application/vnd.ms-excel',
+        '.xlsx':  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        '.zip':   'application/zip',
+        '.rar':   'application/x-rar-compressed',
+        '.7z':    'application/x-7z-compressed',
+        '.tar':   'application/x-tar',
+        '.gz':    'application/gzip',
+        '.mp4':   'video/mp4',
+        '.avi':   'video/x-msvideo',
+        '.mov':   'video/quicktime',
+        '.mp3':   'audio/mpeg',
+        '.wav':   'audio/wav',
+        '.jpg':   'image/jpeg',
+        '.jpeg':  'image/jpeg',
+        '.png':   'image/png',
+        '.gif':   'image/gif',
+        '.svg':   'image/svg+xml',
+        '.webp':  'image/webp',
+        '.txt':   'text/plain; charset=utf-8',
+        '.csv':   'text/csv; charset=utf-8',
+        '.json':  'application/json',
+        '.xml':   'application/xml',
+        '.html':  'text/html; charset=utf-8',
+        '.py':    'text/x-python; charset=utf-8',
+        '.ipynb': 'application/x-ipynb+json',
+        '.r':     'text/x-r; charset=utf-8',
+        '.rmd':   'text/x-rmarkdown; charset=utf-8',
+        '.sql':   'application/sql',
+        '.sh':    'application/x-sh',
+        '.js':    'text/javascript',
+        '.ts':    'text/typescript',
+        '.css':   'text/css',
+        '.md':    'text/markdown; charset=utf-8',
+        '.yaml':  'text/yaml',
+        '.yml':   'text/yaml',
+        '.toml':  'text/toml',
+        '.mat':   'application/octet-stream',
+        '.m':     'text/x-matlab',
+        '.c':     'text/x-c',
+        '.cpp':   'text/x-c++',
+        '.java':  'text/x-java',
+        '.h':     'text/x-c',
+    }
+    ct = ct_map.get(ext, 'application/octet-stream')
+    return ext, ct
+
 def _cloudinary_get_bytes(file_url):
     """
     Download file bytes from Cloudinary using the authenticated API
