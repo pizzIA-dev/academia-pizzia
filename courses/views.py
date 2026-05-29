@@ -655,19 +655,39 @@ def view_material(request, pk):
     """
     Inline proxy: downloads file from Cloudinary via authenticated API
     (bypasses CDN ACL restrictions) and serves with correct Content-Type.
+    Extension preserved for all formats (ipynb, r, py, etc.).
     """
     from django.http import HttpResponse
+    from urllib.parse import urlparse as _up, unquote as _uq
     material = get_object_or_404(SessionMaterial, pk=pk)
     if not request.user.is_member_of(material.session.course):
         return redirect('dashboard')
 
-    ct = MATERIAL_CONTENT_TYPES.get(material.file_type, 'application/octet-stream')
+    file_url = material.file.url
+
+    # For known types use existing map; for 'other' extract from Cloudinary URL
+    ext_from_map = MATERIAL_EXTENSIONS.get(material.file_type, '')
+    if ext_from_map:
+        ext = ext_from_map
+        ct  = MATERIAL_CONTENT_TYPES.get(material.file_type, 'application/octet-stream')
+    else:
+        ext, ct = _ext_and_ct(file_url, material.file.name)
+
+    # Build filename
     try:
-        content = _cloudinary_get_bytes(material.file.url)
-        ext = MATERIAL_EXTENSIONS.get(material.file_type, '')
-        safe_name = material.name.replace('"', "'")
-        if ext and not safe_name.lower().endswith(ext):
-            safe_name += ext
+        orig_fname = _uq(_up(file_url).path.split('?')[0].split('/')[-1])
+        if not orig_fname or orig_fname == ext.lstrip('.'):
+            orig_fname = material.name + ext
+    except Exception:
+        orig_fname = material.name + ext
+
+    if ext and not orig_fname.lower().endswith(ext):
+        orig_fname += ext
+
+    safe_name = orig_fname.replace(chr(34), chr(39))
+
+    try:
+        content = _cloudinary_get_bytes(file_url)
         response = HttpResponse(content, content_type=ct)
         response['Content-Disposition'] = f'inline; filename="{safe_name}"'
         response['X-Frame-Options'] = 'SAMEORIGIN'
@@ -680,32 +700,28 @@ def view_material(request, pk):
 <body style="background:#1a1a2e;font-family:sans-serif;
              display:flex;align-items:center;justify-content:center;
              height:100vh;flex-direction:column;gap:1rem;margin:0;padding:1rem;">
-  <p style="font-size:1.1rem;color:#f97316;font-weight:600;">
-    Error al cargar el archivo
+  <p style="font-size:1.1rem;color:#f87171;text-align:center;max-width:500px">
+    No se pudo cargar el archivo:<br><small>{error_msg}</small>
   </p>
-  <p style="font-size:0.8rem;color:#fca5a5;background:#450a0a;
-            padding:.5rem 1rem;border-radius:6px;max-width:400px;word-break:break-all;">
-    {error_msg}
-  </p>
-  <p style="font-size:0.7rem;color:#888;max-width:400px;word-break:break-all;">
-    URL: {raw_url[:100]}
-  </p>
-  <a href="/materials/{pk}/download/"
-     style="background:#0ea5e9;color:#fff;padding:.7rem 1.6rem;
-            border-radius:8px;text-decoration:none;font-weight:600;margin-top:.5rem;">
-    Descargar archivo
+  <a href="{raw_url}" target="_blank"
+     style="color:#38bdf8;background:rgba(56,189,248,.1);
+            border:1px solid rgba(56,189,248,.3);padding:.6rem 1.2rem;
+            border-radius:.5rem;text-decoration:none;">
+    Abrir en Cloudinary
   </a>
 </body></html>"""
-        return HttpResponse(html, content_type='text/html; charset=utf-8')
+        return HttpResponse(html, content_type='text/html', status=200)
 
 
 @login_required
 def download_material(request, pk):
     """
     Forced download: uses Cloudinary authenticated API (bypasses ACL).
+    Extension is always preserved — even for unknown formats (ipynb, r, py, etc.).
     Videos redirect to CDN directly (too large to proxy).
     """
     from django.http import HttpResponse
+    from urllib.parse import urlparse as _up, unquote as _uq
     material = get_object_or_404(SessionMaterial, pk=pk)
     if not request.user.is_member_of(material.session.course):
         messages.error(request, 'No tienes acceso a este archivo.')
@@ -714,21 +730,39 @@ def download_material(request, pk):
     if material.file_type in ('video', 'audio'):
         return redirect(material.file.url)
 
-    ct = MATERIAL_CONTENT_TYPES.get(material.file_type, 'application/octet-stream')
-    ext = MATERIAL_EXTENSIONS.get(material.file_type, '')
-    safe_name = material.name.replace('"', "'")
-    if ext and not safe_name.lower().endswith(ext):
-        safe_name += ext
+    file_url = material.file.url
+
+    # For known types use existing map; for 'other' extract from Cloudinary URL
+    ext_from_map = MATERIAL_EXTENSIONS.get(material.file_type, '')
+    if ext_from_map:
+        ext = ext_from_map
+        ct  = MATERIAL_CONTENT_TYPES.get(material.file_type, 'application/octet-stream')
+    else:
+        ext, ct = _ext_and_ct(file_url, material.file.name)
+
+    # Build filename: prefer original filename from URL, fallback to material.name + ext
+    try:
+        orig_fname = _uq(_up(file_url).path.split('?')[0].split('/')[-1])
+        # orig_fname is e.g. "notebook.ipynb" or just "notebook"
+        if not orig_fname or orig_fname == ext.lstrip('.'):
+            orig_fname = material.name + ext
+    except Exception:
+        orig_fname = material.name + ext
+
+    # Guarantee extension is present
+    if ext and not orig_fname.lower().endswith(ext):
+        orig_fname += ext
+
+    safe_name = orig_fname.replace(chr(34), chr(39))
 
     try:
-        content = _cloudinary_get_bytes(material.file.url)
+        content = _cloudinary_get_bytes(file_url)
         response = HttpResponse(content, content_type=ct)
         response['Content-Disposition'] = f'attachment; filename="{safe_name}"'
         return response
     except Exception as e:
         messages.error(request, f'Error al descargar: {str(e)[:100]}')
         return redirect('session_detail', pk=material.session.pk)
-
 
 
 @login_required
