@@ -900,33 +900,34 @@ def activity_file_view(request, pk):
 
 @login_required
 def activity_file_download(request, pk):
-    """Proxy: download activity instruction file with clean filename."""
+    """Proxy: download activity instruction file — preserves original extension."""
     from django.http import HttpResponse
-    from .models import Activity
-    import os as _os
+    from urllib.parse import urlparse as _up, unquote as _uq
     activity = get_object_or_404(Activity, pk=pk)
     if not request.user.is_member_of(activity.session.course):
         return redirect('dashboard')
     if not activity.instruction_file:
         return HttpResponse("No hay archivo adjunto.", status=404)
-    file_url = activity.instruction_file.url
-    fname = activity.instruction_file.name
-    ext = _os.path.splitext(fname)[1].lower()
-    ct_map = {'.pdf': 'application/pdf', '.doc': 'application/msword',
-              '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-              '.ppt': 'application/vnd.ms-powerpoint',
-              '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-              '.xls': 'application/vnd.ms-excel',
-              '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-              '.zip': 'application/zip', '.mp4': 'video/mp4',
-    }
-    ct = ct_map.get(ext, 'application/octet-stream')
-    clean_name = activity.title + ext
+
+    file_url    = activity.instruction_file.url
+    ext, ct     = _ext_and_ct(file_url, activity.instruction_file.name)
+
+    # Prefer original filename from Cloudinary URL (extension preserved there)
+    try:
+        raw_fname = _uq(_up(file_url).path.split('?')[0].split('/')[-1])
+        if not raw_fname or raw_fname == ext.lstrip('.'):
+            raw_fname = activity.title + ext
+    except Exception:
+        raw_fname = activity.title + ext
+
+    # Guarantee extension is present
+    if ext and not raw_fname.lower().endswith(ext):
+        raw_fname += ext
+
     try:
         content = _cloudinary_get_bytes(file_url)
         resp = HttpResponse(content, content_type=ct)
-        safe = clean_name.replace('"', "'")
-        resp['Content-Disposition'] = f'attachment; filename="{safe}"'
+        resp['Content-Disposition'] = f'attachment; filename="{raw_fname.replace(chr(34), chr(39))}"'
         return resp
     except Exception as e:
         return HttpResponse(f"Error al descargar: {e}", status=502)
