@@ -4,27 +4,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --bg-primary: #060d1a;
-  --bg-secondary: #0d1627;
-  --bg-card: rgba(255,255,255,0.04);
-  --bg-card-hover: rgba(255,255,255,0.07);
-  --border: rgba(255,255,255,0.08);
-  --border-hover: rgba(255,255,255,0.18);
-  --text-primary: #f0f4ff;
-  --text-secondary: #8899b4;
-  --text-muted: #4a5568;
-  --accent: #00c6ff;
-  --accent-2: #7b61ff;
-  --accent-3: #00e5a0;
-  --danger: #ff4b6e;
-  --warning: #f59e0b;
-  --success: #10b981;
-  --radius: 12px;
-  --radius-lg: 20px;
-  --shadow: 0 8px 32px rgba(0,0,0,0.4);
-  --shadow-sm: 0 2px 12px rgba(0,0,0,0.3);
-  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --glass: blur(20px) saturate(180%);
+  --bg-primary:    #0c1118;
+  --bg-secondary:  #131a24;
+  --bg-card:       rgba(255,255,255,0.045);
+  --bg-card-hover: rgba(255,255,255,0.08);
+  --border:        rgba(255,255,255,0.07);
+  --border-hover:  rgba(255,255,255,0.16);
+  --text-primary:  #e8edf5;
+  --text-secondary:#7a8fa8;
+  --text-muted:    #445568;
+  /* Muted accents — easier on eyes, promote focus (psychology: low saturation = less cognitive load) */
+  --accent:        #4fa3d4;   /* steel blue  — trust, calm, focus          */
+  --accent-2:      #7c6fcd;   /* soft violet — creativity, wisdom           */
+  --accent-3:      #52b788;   /* sage green  — growth, calm, success        */
+  --danger:        #d95f7a;   /* soft rose   — less aggressive than pure red */
+  --warning:       #c9882a;   /* warm amber  — alert without panic           */
+  --success:       #52b788;
+  --radius:        12px;
+  --radius-lg:     20px;
+  --shadow:        0 8px 32px rgba(0,0,0,0.45);
+  --shadow-sm:     0 2px 12px rgba(0,0,0,0.3);
+  --transition:    all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --glass:         blur(20px) saturate(140%);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,7 +47,7 @@ body::before {
   left: -20%;
   width: 80%;
   height: 80%;
-  background: radial-gradient(ellipse, rgba(0,198,255,0.06) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(79,163,212,0.04) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -58,7 +59,7 @@ body::after {
   right: -10%;
   width: 60%;
   height: 60%;
-  background: radial-gradient(ellipse, rgba(123,97,255,0.05) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(124,111,205,0.03) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -86,7 +87,7 @@ body::after {
 .navbar-brand {
   font-size: 1.4rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: linear-gradient(135deg, var(--accent), #5a7fc4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -357,7 +358,7 @@ input[type=radio].color-radio { display: none; }
   padding: 1.25rem;
   text-align: center;
 }
-.stat-value { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.stat-value { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), #5a7fc4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .stat-label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* ── Section Headers ── */
@@ -646,7 +647,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .footer-logo {
   font-weight: 800;
   font-size: 1rem;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: linear-gradient(135deg, var(--accent), #5a7fc4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

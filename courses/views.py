@@ -61,7 +61,7 @@ def course_detail(request, pk):
     if not user.is_member_of(course):
         messages.error(request, 'No tienes acceso a este curso.')
         return redirect('dashboard')
-    sessions = course.sessions.all()
+    sessions = course.sessions.order_by('-created_at')
     is_owner = user.is_teacher_of(course)
     can_manage = user.can_manage(course)
     pending_count = course.get_pending_requests_count() if can_manage else 0
