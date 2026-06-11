@@ -36,7 +36,7 @@
     <div style="padding:1.5rem;flex:1;display:flex;flex-direction:column;">
       <!-- Title + teacher -->
       <div style="margin-bottom:1rem;">
-        <h3 style="margin:0 0 .4rem;font-size:1.05rem;color:#fff;font-weight:700;">{{ c.title }}</h3>
+        <h3 style="margin:0 0 .4rem;font-size:1.05rem;color:var(--text-primary);font-weight:700;">{{ c.title }}</h3>
         <div style="color:rgba(255,255,255,.45);font-size:.82rem;">
           <i data-lucide="user" class="icon"></i> {{ c.teacher.get_full_name|default:c.teacher.username }}
         </div>

@@ -46,7 +46,7 @@
       {% for sf in submission.files.all %}
       <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.04);border-radius:8px;padding:.5rem .8rem;margin-bottom:.4rem;">
         <span style="background:rgba(56,189,248,.15);color:#38bdf8;border-radius:4px;padding:.15rem .4rem;font-size:.72rem;font-weight:700;">{{ sf.file_type_label }}</span>
-        <span style="flex:1;color:#fff;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sf.original_name }}</span>
+        <span style="flex:1;color:var(--text-primary);font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sf.original_name }}</span>
         <a href="{% url 'submission_file_download' sf.pk %}" target="_blank" class="btn btn-secondary btn-sm" style="font-size:.8rem;">↓ Descargar</a>
       </div>
       {% endfor %}
@@ -111,7 +111,7 @@
 
 {% if submission.files.exists %}
 <div class="card" style="margin-bottom:1rem;padding:1.2rem;">
-  <h4 style="margin:0 0 .8rem;color:#fff;font-size:.95rem;"><i data-lucide="paperclip" class="icon"></i> Archivos entregados ({{ submission.files.count }})</h4>
+  <h4 style="margin:0 0 .8rem;color:var(--text-primary);font-size:.95rem;"><i data-lucide="paperclip" class="icon"></i> Archivos entregados ({{ submission.files.count }})</h4>
   {% for sf in submission.files.all %}
   <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem 0;
     border-bottom:1px solid rgba(255,255,255,.06);">
@@ -119,7 +119,7 @@
       padding:.2rem .5rem;font-size:.75rem;font-weight:700;">
       {{ sf.file_type_label }}
     </span>
-    <span style="flex:1;color:#fff;font-size:.88rem;">{{ sf.original_name }}</span>
+    <span style="flex:1;color:var(--text-primary);font-size:.88rem;">{{ sf.original_name }}</span>
     <a href="{% url 'submission_file_download' sf.pk %}" target="_blank" class="btn btn-secondary btn-sm">
       ↓ Descargar
     </a>
@@ -128,7 +128,7 @@
 </div>
 {% elif submission.file %}
 <div class="card" style="margin-bottom:1rem;padding:1.2rem;">
-  <h4 style="margin:0 0 .5rem;color:#fff;font-size:.95rem;"><i data-lucide="paperclip" class="icon"></i> Archivo entregado</h4>
+  <h4 style="margin:0 0 .5rem;color:var(--text-primary);font-size:.95rem;"><i data-lucide="paperclip" class="icon"></i> Archivo entregado</h4>
   <a href="{{ submission.file.url }}" target="_blank" class="btn btn-secondary btn-sm">
     ↓ Descargar archivo
   </a>

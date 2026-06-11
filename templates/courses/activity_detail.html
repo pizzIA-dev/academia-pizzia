@@ -90,7 +90,7 @@
             {% for sf in user_submission.files.all %}
             <div style="display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.04);border-radius:8px;padding:.45rem .8rem;">
               <span style="background:rgba(56,189,248,.15);color:#38bdf8;border-radius:4px;padding:.1rem .4rem;font-size:.7rem;font-weight:700;flex-shrink:0;">{{ sf.file_type_label }}</span>
-              <span style="flex:1;color:#fff;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sf.original_name }}</span>
+              <span style="flex:1;color:var(--text-primary);font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sf.original_name }}</span>
               <a href="{% url 'submission_file_download' sf.pk %}" class="btn btn-secondary btn-sm" style="font-size:.76rem;padding:.2rem .55rem;flex-shrink:0;"><i data-lucide="download" class="icon"></i></a>
               {% if can_resubmit %}
               <form method="POST" action="{% url 'delete_submission_file' sf.pk %}" style="margin:0;" onsubmit="return confirm('¿Eliminar este archivo?')">
@@ -180,7 +180,7 @@
             var d=document.createElement('div');
             d.style.cssText='display:flex;align-items:center;gap:.5rem;background:rgba(99,102,241,.08);border-radius:7px;padding:.35rem .6rem;margin-bottom:.3rem;';
             d.innerHTML='<span style="background:rgba(99,102,241,.2);color:#a5b4fc;border-radius:3px;padding:.1rem .3rem;font-size:.68rem;font-weight:700;">'+ext+'</span>'+
-              '<span style="flex:1;color:#fff;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.name+'</span>'+
+              '<span style="flex:1;color:var(--text-primary);font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.name+'</span>'+
               '<span style="color:rgba(255,255,255,.3);font-size:.74rem;">'+sz+'</span>'+
               '<button type="button" onclick="rsDel(\''+f.name.replace(/'/g,"\\'")+'\')" style="background:none;border:none;color:rgba(239,68,68,.6);cursor:pointer;padding:0;">×</button>';
             items.appendChild(d);
@@ -311,7 +311,7 @@
               el.style.cssText = 'display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.05);border-radius:8px;padding:.5rem .8rem;';
               el.innerHTML =
                 '<span style="background:rgba(56,189,248,.2);color:#38bdf8;border-radius:4px;padding:.15rem .4rem;font-size:.72rem;font-weight:700;">' + ext + '</span>' +
-                '<span style="flex:1;color:#fff;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + f.name + '</span>' +
+                '<span style="flex:1;color:var(--text-primary);font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + f.name + '</span>' +
                 '<span style="color:rgba(255,255,255,.4);font-size:.78rem;">' + fmtSize(f.size) + '</span>' +
                 '<button type="button" onclick="removeSubFile(\'' + f.name.replace(/'/g,"\\'") + '\')" ' +
                 'style="background:none;border:none;color:rgba(239,68,68,.7);cursor:pointer;font-size:1rem;padding:0 .2rem;">×</button>';

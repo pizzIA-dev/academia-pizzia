@@ -955,3 +955,30 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 
 /* body bg transition for smooth theme switch */
 body { transition: background-color 0.2s ease, color 0.2s ease; }
+
+/* ── Form inputs: theme-aware ─────────────────────────────────── */
+input[type="text"], input[type="email"], input[type="password"],
+input[type="number"], input[type="date"], input[type="search"],
+input[type="url"], textarea, select {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-hover) !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--text-secondary) !important;
+  opacity: 1;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
+}
+/* ── Tables ───────────────────────────────────────────────────── */
+table { border-collapse: collapse; width: 100%; }
+th, td { color: var(--text-primary); border-color: var(--border); }
+th { color: var(--text-secondary); }
+/* ── Links ────────────────────────────────────────────────────── */
+a { color: var(--accent); }
+a:hover { opacity: 0.8; }
+/* Student avatar (always white text on colored bg) */
+.student-avatar { color: #fff !important; }

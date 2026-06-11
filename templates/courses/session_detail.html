@@ -73,13 +73,13 @@
         <div>
           <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Título *</label>
           <input type="text" name="title" required
-            style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
+            style="width:100%;background:var(--bg-card);border:1px solid var(--border-hover);border-radius:8px;padding:.6rem .9rem;color:var(--text-primary);font-size:.9rem;box-sizing:border-box;"
             placeholder="Ej: Clase 1 - Introducción">
         </div>
         <div>
           <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Fuente</label>
           <select name="source"
-            style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;">
+            style="width:100%;background:var(--bg-card);border:1px solid var(--border-hover);border-radius:8px;padding:.6rem .9rem;color:var(--text-primary);font-size:.9rem;box-sizing:border-box;">
             <option value="drive"><i data-lucide="folder" class="icon"></i> Google Drive</option>
             <option value="youtube">▶ YouTube</option>
             <option value="zoom"><i data-lucide="monitor" class="icon"></i> Zoom</option>
@@ -91,13 +91,13 @@
       <div style="margin-bottom:1rem;">
         <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Enlace *</label>
         <input type="url" name="link" required
-          style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
+          style="width:100%;background:var(--bg-card);border:1px solid var(--border-hover);border-radius:8px;padding:.6rem .9rem;color:var(--text-primary);font-size:.9rem;box-sizing:border-box;"
           placeholder="https://drive.google.com/... o https://youtu.be/...">
       </div>
       <div style="margin-bottom:1rem;">
         <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.4rem;">Descripción (opcional)</label>
         <input type="text" name="description"
-          style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.9rem;box-sizing:border-box;"
+          style="width:100%;background:var(--bg-card);border:1px solid var(--border-hover);border-radius:8px;padding:.6rem .9rem;color:var(--text-primary);font-size:.9rem;box-sizing:border-box;"
           placeholder="Ej: Temas: repaso examen, ejercicios prácticos">
       </div>
       <div style="display:flex;gap:.75rem;justify-content:flex-end;">
@@ -133,7 +133,7 @@
     </a>
     {% endif %}
     <div style="padding:1rem;">
-      <div style="font-weight:600;color:#fff;margin-bottom:.3rem;font-size:.95rem;">{{ rec.title }}</div>
+      <div style="font-weight:600;color:var(--text-primary);margin-bottom:.3rem;font-size:.95rem;">{{ rec.title }}</div>
       {% if rec.description %}
       <div style="color:rgba(255,255,255,.5);font-size:.8rem;margin-bottom:.5rem;">{{ rec.description }}</div>
       {% endif %}
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
     border-radius:16px;padding:2rem;width:90%;max-width:480px;
     box-shadow:0 24px 60px rgba(0,0,0,.6);">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-      <h3 style="margin:0;font-size:1.1rem;color:#fff;">Subir Material</h3>
+      <h3 style="margin:0;font-size:1.1rem;color:var(--text-primary);">Subir Material</h3>
       <button onclick="closeUploadModal()" id="upload-close-btn"
         style="background:rgba(239,68,68,.15);border:none;color:#ef4444;
                border-radius:6px;padding:.3rem .6rem;cursor:pointer;"><i data-lucide="x" class="icon"></i></button>
@@ -546,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;">
     <div id="widget-icon">⬆</div>
     <div style="flex:1;min-width:0;">
-      <div id="widget-name" style="color:#fff;font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+      <div id="widget-name" style="color:var(--text-primary);font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
       <div id="widget-sub" style="color:rgba(255,255,255,.4);font-size:.75rem;"></div>
     </div>
     <div id="widget-pct" style="color:#38bdf8;font-size:.85rem;font-weight:700;"></div>

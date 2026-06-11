@@ -135,7 +135,7 @@ document.getElementById('enroll-link')?.addEventListener('click', function() {
   <div style="padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);">
     <input type="text" id="student-search" placeholder="<i data-lucide="search" class="icon"></i> Buscar por nombre o correo..."
       oninput="filterStudents(this.value)"
-      style="width:100%;background:transparent;border:none;color:#fff;font-size:.9rem;outline:none;">
+      style="width:100%;background:transparent;border:none;color:var(--text-primary);font-size:.9rem;outline:none;">
   </div>
 
   <table style="width:100%;border-collapse:collapse;" id="students-table">
@@ -162,7 +162,7 @@ document.getElementById('enroll-link')?.addEventListener('click', function() {
               font-size:.8rem;font-weight:700;color:#fff;flex-shrink:0;">
               {{ s.first_name|first|upper }}{{ s.last_name|first|upper }}
             </div>
-            <span style="color:#fff;font-weight:500;">{{ s.get_full_name|default:s.username }}</span>
+            <span style="color:var(--text-primary);font-weight:500;">{{ s.get_full_name|default:s.username }}</span>
           </div>
         </td>
         <td style="padding:.8rem 1rem;color:rgba(255,255,255,.5);font-size:.88rem;">
