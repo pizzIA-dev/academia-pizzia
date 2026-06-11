@@ -121,7 +121,7 @@ FILE_TYPE_CHOICES = [
 class SessionMaterial(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='materials')
     name = models.CharField(max_length=200, verbose_name='Nombre del archivo')
-    file = models.FileField(upload_to=material_upload_path, verbose_name='Archivo')
+    file = models.FileField(upload_to=material_upload_path, verbose_name='Archivo', max_length=500)
     file_type = models.CharField(max_length=10, choices=FILE_TYPE_CHOICES, default='other')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
