@@ -1,11 +1,12 @@
+/* CSS-VERSION: 1781143958 */
 /* ============================================================
    EduClass - Premium Dark Theme
    ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --bg-primary:    #0c1118;
-  --bg-secondary:  #131a24;
+  --bg-primary:    #0d1420;
+  --bg-secondary:  #141d2e;
   --bg-card:       rgba(255,255,255,0.045);
   --bg-card-hover: rgba(255,255,255,0.08);
   --border:        rgba(255,255,255,0.07);
@@ -125,9 +126,9 @@ body::after {
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
-.badge-teacher { background: rgba(0,198,255,0.15); color: var(--accent); border: 1px solid rgba(0,198,255,0.3); }
-.badge-student { background: rgba(0,229,160,0.12); color: var(--accent-3); border: 1px solid rgba(0,229,160,0.25); }
-.badge-moderator { background: rgba(123,97,255,0.15); color: var(--accent-2); border: 1px solid rgba(123,97,255,0.3); }
+.badge-teacher { background: rgba(79,163,212,0.15); color: var(--accent); border: 1px solid rgba(79,163,212,0.3); }
+.badge-student { background: rgba(82,183,136,0.12); color: var(--accent-3); border: 1px solid rgba(82,183,136,0.25); }
+.badge-moderator { background: rgba(124,111,205,0.15); color: var(--accent-2); border: 1px solid rgba(124,111,205,0.3); }
 
 /* ── Main Layout ── */
 main {
@@ -218,11 +219,11 @@ main {
 }
 .btn:active { transform: scale(0.97); }
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), #0080ff);
-  color: #000;
-  box-shadow: 0 4px 20px rgba(0,198,255,0.25);
+  background: linear-gradient(135deg, var(--accent), #5b7fc4);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(79,163,212,0.25);
 }
-.btn-primary:hover { box-shadow: 0 6px 28px rgba(0,198,255,0.4); transform: translateY(-1px); }
+.btn-primary:hover { box-shadow: 0 6px 28px rgba(79,163,212,0.4); transform: translateY(-1px); }
 .btn-secondary {
   background: var(--bg-card);
   color: var(--text-primary);
@@ -266,8 +267,8 @@ main {
 }
 .form-control:focus {
   border-color: var(--accent);
-  background: rgba(0,198,255,0.05);
-  box-shadow: 0 0 0 3px rgba(0,198,255,0.15);
+  background: rgba(79,163,212,0.05);
+  box-shadow: 0 0 0 3px rgba(79,163,212,0.15);
 }
 .form-control::placeholder { color: var(--text-muted); }
 textarea.form-control { resize: vertical; min-height: 90px; }
@@ -296,7 +297,7 @@ select.form-control { cursor: pointer; }
 .role-label:hover { border-color: var(--border-hover); }
 .role-option input[type=radio]:checked + .role-label {
   border-color: var(--accent);
-  background: rgba(0,198,255,0.08);
+  background: rgba(79,163,212,0.08);
   color: var(--accent);
 }
 .role-icon { font-size: 2rem; }
@@ -331,7 +332,7 @@ input[type=radio].color-radio { display: none; }
 .alert-success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: var(--success); }
 .alert-error { background: rgba(255,75,110,0.12); border: 1px solid rgba(255,75,110,0.3); color: var(--danger); }
 .alert-warning { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--warning); }
-.alert-info { background: rgba(0,198,255,0.1); border: 1px solid rgba(0,198,255,0.25); color: var(--accent); }
+.alert-info { background: rgba(79,163,212,0.1); border: 1px solid rgba(79,163,212,0.25); color: var(--accent); }
 
 /* ── Page Header ── */
 .page-header {
@@ -408,7 +409,7 @@ input[type=radio].color-radio { display: none; }
 .file-icon-excel { background: rgba(16,185,129,0.15); color: var(--success); }
 .file-icon-word { background: rgba(0,120,255,0.15); color: #0078ff; }
 .file-icon-pdf { background: rgba(255,100,0,0.15); color: #ff6400; }
-.file-icon-other { background: rgba(123,97,255,0.15); color: var(--accent-2); }
+.file-icon-other { background: rgba(124,111,205,0.15); color: var(--accent-2); }
 .file-name { font-weight: 500; font-size: 0.9rem; flex: 1; }
 .file-meta { font-size: 0.78rem; color: var(--text-muted); }
 
@@ -436,7 +437,7 @@ input[type=radio].color-radio { display: none; }
   font-weight: 600;
 }
 .status-pending { background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); }
-.status-submitted { background: rgba(0,198,255,0.12); color: var(--accent); border: 1px solid rgba(0,198,255,0.25); }
+.status-submitted { background: rgba(79,163,212,0.12); color: var(--accent); border: 1px solid rgba(79,163,212,0.25); }
 .status-graded { background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.25); }
 
 /* ── Table ── */
@@ -466,8 +467,8 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  background: rgba(0,198,255,0.08);
-  border: 1px dashed rgba(0,198,255,0.4);
+  background: rgba(79,163,212,0.08);
+  border: 1px dashed rgba(79,163,212,0.4);
   border-radius: 10px;
   padding: 0.75rem 1.25rem;
   font-family: 'Courier New', monospace;
@@ -564,7 +565,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   transition: var(--transition);
   cursor: pointer;
 }
-.upload-area:hover { border-color: var(--accent); background: rgba(0,198,255,0.04); }
+.upload-area:hover { border-color: var(--accent); background: rgba(79,163,212,0.04); }
 .upload-icon { font-size: 3rem; margin-bottom: 1rem; color: var(--text-muted); }
 
 /* ── Auth Pages ── */
@@ -689,7 +690,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   background: none;
 }
 .video-tab.active {
-  background: rgba(0,198,255,0.15);
+  background: rgba(79,163,212,0.15);
   color: var(--accent);
 }
 .video-tab-content { display: none; }
@@ -823,7 +824,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 }
 .material-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(0,198,255,0.35);
+  border-color: rgba(79,163,212,0.35);
   box-shadow: 0 8px 28px rgba(0,0,0,0.25);
 }
 
