@@ -235,11 +235,14 @@ def material_upload(request, session_pk):
     if request.method == 'POST':
         form = MaterialUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            material = form.save(commit=False)
-            material.session = session
-            material.save()
-            messages.success(request, 'Archivo subido correctamente.')
-            return redirect('session_detail', pk=session_pk)
+            try:
+                material = form.save(commit=False)
+                material.session = session
+                material.save()
+                messages.success(request, f'Archivo subido correctamente.')
+                return redirect('session_detail', pk=session_pk)
+            except Exception as e:
+                messages.error(request, f'Error al subir el archivo: {str(e)[:150]}')
     else:
         form = MaterialUploadForm()
     return render(request, 'courses/material_form.html', {
@@ -837,7 +840,7 @@ def debug_material(request, pk):
 
 @login_required
 def material_upload_ajax(request, session_pk):
-    """AJAX upload endpoint — returns JSON, supports XHR progress tracking."""
+    """AJAX upload endpoint - returns JSON, supports XHR progress tracking."""
     from django.http import JsonResponse
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -849,17 +852,21 @@ def material_upload_ajax(request, session_pk):
 
     form = MaterialUploadForm(request.POST, request.FILES)
     if form.is_valid():
-        material = form.save(commit=False)
-        material.session = session
-        material.save()
-        ct = MATERIAL_CONTENT_TYPES.get(material.file_type, 'application/octet-stream')
-        return JsonResponse({
-            'success': True,
-            'pk': material.pk,
-            'name': material.name,
-            'file_type': material.file_type,
-            'upload_date': material.upload_date.strftime('%d/%m/%Y'),
-        })
+        try:
+            material = form.save(commit=False)
+            material.session = session
+            material.save()
+            return JsonResponse({
+                'success': True,
+                'pk': material.pk,
+                'name': material.name,
+                'file_type': material.file_type,
+                'upload_date': material.uploaded_at.strftime('%d/%m/%Y'),
+                'view_url':     f'/materials/{material.pk}/view/',
+                'download_url': f'/materials/{material.pk}/download/',
+            })
+        except Exception as e:
+            return JsonResponse({'error': f'Error al guardar: {str(e)[:200]}'}, status=500)
     return JsonResponse({'error': str(form.errors)}, status=400)
 
 

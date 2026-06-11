@@ -179,6 +179,7 @@
 {% if materials %}
   <div class="material-grid fade-in" style="margin-bottom:2rem;">
     {% for material in materials %}
+      {% if material.file %}
       <div class="material-card" onclick="handleCardClick('{{ material.file.url }}', '{{ material.file_type }}', '{{ material.name|escapejs }}', '{% url "material_view" material.pk %}', '{% url "material_download" material.pk %}')">
         <!-- Thumbnail / Icon area -->
         <div class="material-thumb material-thumb-{{ material.file_type }}">
@@ -217,6 +218,7 @@
           {% endif %}
         </div>
       </div>
+      {% endif %}
     {% endfor %}
   </div>
 {% else %}
